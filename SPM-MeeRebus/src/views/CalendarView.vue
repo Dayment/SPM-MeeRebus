@@ -29,13 +29,14 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="app">
-    <!-- <VueCal :events="events" /> -->
-    <router-view></router-view>
-  </div>
-</template>
-
-<style scoped>
-@import url('https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css');
-@import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
-</style>
+    <div id="app">
+      <VueCal :events="events" />
+      <router-view></router-view>
+    </div>
+  </template>
+  
+  <style scoped>
+  @import url('https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css');
+  @import url('https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css');
+  </style>
+  
