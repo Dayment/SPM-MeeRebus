@@ -79,10 +79,21 @@ def get_arrangement(arrangement_id):
         return jsonify({"error": "Arrangement not found"}), 404
 
 # Get all arrangements
+# Use for HR or whoever is supposed to see everything
 @app.route('/arrangement', methods=['GET'])
 def get_all_arrangements():
     response = supabase.table('arrangement').select('*').execute()
     
+    if response.data:
+        return jsonify(response.data), 200  
+    else:
+        return jsonify({"error": "No arrangements found"}), 404
+    
+
+# Get arrangement for specific employee
+@app.route('/arrangement/emp/<int:staff_id>', methods=['GET'])
+def get_employee_arrangement(staff_id):
+    response = supabase.table('arrangement').select('*').eq('staff_id', staff_id).execute()
     if response.data:
         return jsonify(response.data), 200  
     else:
