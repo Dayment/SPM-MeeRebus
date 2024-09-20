@@ -9,7 +9,7 @@
           <!-- Month Dropdown -->
           <div class="dropdown">
             <button
-              class="btn btn-outline-secondary dropdown-toggle"
+              class="btn btn-secondary dropdown-toggle"
               type="button"
               id="dropdownMonth"
               data-bs-toggle="dropdown"
@@ -34,7 +34,7 @@
           <!-- Year Dropdown -->
           <div class="dropdown">
             <button
-              class="btn btn-outline-secondary dropdown-toggle"
+              class="btn btn-secondary dropdown-toggle"
               type="button"
               id="dropdownYear"
               data-bs-toggle="dropdown"
@@ -101,7 +101,7 @@ export default {
       selectedDate: today,
       currentYear: today.getFullYear(),
       currentMonthIndex: today.getMonth(),
-      daysOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+      daysOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
       months: [
         'January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'September', 'October', 'November', 'December'
@@ -172,7 +172,7 @@ export default {
     generateYears() {
       const currentYear = new Date().getFullYear();
       const years = [];
-      for (let i = currentYear - 50; i <= currentYear + 50; i++) {
+      for (let i = currentYear - 10; i <= currentYear + 5; i++) {
         years.push(i);
       }
       return years;
@@ -202,7 +202,6 @@ export default {
   display: grid;
   grid-template-columns: repeat(7, 1fr); /* 7 days in a week */
   grid-auto-rows: auto; /* Allow rows to adjust based on content */
-  gap: 10px; /* Space between the day boxes */
   padding-bottom: 20px; /* Add padding to the bottom */
 }
 
@@ -214,10 +213,10 @@ export default {
   align-items: flex-end; /* Align day number to the right */
   background-color: white;
   border: 1px solid #dee2e6;
-  padding: 10px; /* Extra space for content inside the box */
+  padding: 5px; /* Extra space for content inside the box */
   box-sizing: border-box;
   transition: background-color 0.2s ease-in-out;
-  min-height: 100px; /* Adjust this based on how much content you plan to add */
+  min-height: 150px; /* Adjust this based on how much content you plan to add */
 }
 
 /* Highlight today's date with a border */
