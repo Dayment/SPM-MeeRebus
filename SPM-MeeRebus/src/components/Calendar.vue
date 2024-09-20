@@ -69,7 +69,11 @@
             v-for="day in daysInMonth"
             :key="day"
             @click="selectDate(day)"
-            :class="{ 'bg-primary text-white': isToday(day), 'selected-day': isSelectedDay(day) }"
+            :class="{ 
+              'selected-day': isSelectedDay(day),
+              'today-border': isToday(day) 
+            }"
+            :style="{backgroundColor: isToday(day) ? 'white' : ''}"
           >
             <div class="day-content">{{ day }}</div>
           </div>
@@ -84,7 +88,7 @@ export default {
   data() {
     const today = new Date();
     return {
-      selectedDate: today, // stores the currently selected date
+      selectedDate: today,
       currentYear: today.getFullYear(),
       currentMonthIndex: today.getMonth(),
       daysOfWeek: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
@@ -158,7 +162,7 @@ export default {
     generateYears() {
       const currentYear = new Date().getFullYear();
       const years = [];
-      for (let i = currentYear - 10; i <= currentYear + 5; i++) {
+      for (let i = currentYear - 50; i <= currentYear + 50; i++) {
         years.push(i);
       }
       return years;
@@ -168,10 +172,9 @@ export default {
 </script>
 
 <style scoped>
-/* Calendar Container spans 80% of the screen height and width */
+/* Calendar Container spans 100% of the width */
 .calendar-container {
   width: 80vw;
-  height: 80vh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -188,23 +191,28 @@ export default {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr); /* 7 days in a week */
-  grid-auto-rows: 1fr; /* Make each row of equal height */
+  grid-auto-rows: auto; /* Allow rows to adjust based on content */
   gap: 10px; /* Space between the day boxes */
-  height: 100%; /* Full height for the grid */
+  padding-bottom: 20px; /* Add padding to the bottom */
 }
 
 /* Day box styling */
 .day-box {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start; /* Align the day number to the top */
+  justify-content: flex-end; /* Align content to the bottom */
+  align-items: flex-end; /* Align day number to the right */
   background-color: white;
   border: 1px solid #dee2e6;
   padding: 10px; /* Extra space for content inside the box */
   box-sizing: border-box;
   transition: background-color 0.2s ease-in-out;
   min-height: 100px; /* Adjust this based on how much content you plan to add */
+}
+
+/* Highlight today's date with a border */
+.today-border {
+  border: 2px solid #007bff !important; /* Change this color as needed */
 }
 
 /* Day header for weekdays */
@@ -215,21 +223,13 @@ export default {
 
 /* Styling for the day number and content */
 .day-content {
-  font-size: 18px;
-  margin-bottom: 5px;
+  font-size: 14px; /* Decrease font size */
+  margin: 0; /* Remove margin */
 }
 
 /* Highlight selected day */
 .selected-day {
-  background-color: #f0ad4e !important;
-  color: white;
   font-weight: bold;
-}
-
-/* Highlight today's date */
-.bg-primary {
-  background-color: #007bff !important;
-  color: white;
 }
 
 /* Add hover effect on day boxes */
