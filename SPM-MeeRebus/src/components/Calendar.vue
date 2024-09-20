@@ -19,7 +19,12 @@
             </button>
             <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownMonth">
               <li v-for="(month, index) in months" :key="month">
-                <a class="dropdown-item" href="#" @click="selectMonth(index)">
+                <a 
+                  class="dropdown-item" 
+                  href="#" 
+                  @click="selectMonth(index)"
+                  data-bs-dismiss="dropdown"
+                >
                   {{ month }}
                 </a>
               </li>
@@ -39,7 +44,12 @@
             </button>
             <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownYear">
               <li v-for="year in years" :key="year">
-                <a class="dropdown-item" href="#" @click="selectYear(year)">
+                <a 
+                  class="dropdown-item" 
+                  href="#" 
+                  @click="selectYear(year)"
+                  data-bs-dismiss="dropdown"
+                >
                   {{ year }}
                 </a>
               </li>
