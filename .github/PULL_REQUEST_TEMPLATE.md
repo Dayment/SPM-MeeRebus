@@ -11,6 +11,7 @@ closes #ISSUE_NUMBER
 ## Implementation Details
 
 <!--- [OPTIONAL], Delete if not used -->
+
 <!---  Describe how you implemented your changes -->
 
 ## How to Test
@@ -20,11 +21,11 @@ closes #ISSUE_NUMBER
 ## Preview / Screenshots
 
 <!--- [OPTIONAL], Delete if not used -->
+
 <!--- Add screenshots to help explain your changes -->
 
 ## Checklist
 
-- [ ] I have read the [CONTRIBUTING](CONTRIBUTING.md) document
 - [ ] I have tested the changes
 - [ ] _(where applicable)_ I have added tests to cover my changes
 - [ ] _(where applicable)_ I have updated the documentation accordingly
