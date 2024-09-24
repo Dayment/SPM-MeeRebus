@@ -98,6 +98,17 @@ def get_employee_arrangement(staff_id):
         return jsonify(response.data), 200  
     else:
         return jsonify({"error": "No arrangements found"}), 404
+    
+# Get all approved WFH arrangements
+@app.route('/arrangement/approved', methods=['GET'])
+def get_approved_arrangements():
+    response = supabase.table('arrangement').select('*').gt('status', 0).execute()
+    
+    if response.data:
+        return jsonify(response.data), 200  
+    else:
+        return jsonify({"error": "No approved arrangements found"}), 404
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
