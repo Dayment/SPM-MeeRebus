@@ -1,8 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
-import APItest from '../views/APItest.vue'
-import CalendarView from '../views/CalendarView.vue'
-import LoginView from '@/views/LoginView.vue'
+import { createRouter, createWebHistory } from 'vue-router';
+import HomeView from '../views/HomeView.vue';
+import APItest from '../views/APItest.vue';
+import CalendarView from '../views/CalendarView.vue';
+import LoginView from '@/views/LoginView.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,7 +10,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'Login',
-      component: LoginView
+      component: LoginView,
     },
     {
       path: '/apitest',
@@ -18,25 +18,26 @@ const router = createRouter({
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import('../views/APItest.vue')
+      component: () => import('../views/APItest.vue'),
     },
     {
       path: '/calendartest',
       name: 'calendarTest',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/CalendarView.vue')
+
+      component: () => import('../views/CalendarView.vue'),
+    },
+    {
+      path: '/managers-directors',
+      name: 'managers-directors',
+      component: () => import('../views/ManagersDirectors.vue'),
     },
     {
       path: '/home',
       name: 'Home',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import('../views/HomeView.vue')
-    }
-  ]
-})
 
-export default router
+      component: () => import('../views/HomeView.vue'),
+    },
+  ],
+});
+
+export default router;
