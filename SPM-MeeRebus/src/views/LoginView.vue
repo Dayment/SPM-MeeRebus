@@ -52,6 +52,11 @@ export default {
                 if (response.data.dept == "HR" || response.data.position == "MD" || response.data.position == "Director") {
                     // Only if HR, get all the arrangement data
                     await this.getArrangementData();
+                    // Get their own arrangement as well
+                    await this.getOwnArrangementData(response.data.staff_id)
+                }else{
+                    // Get own WFH arrangment
+                    await this.getOwnArrangementData(response.data.staff_id)
                 }
                 
                 return true; // Return true if the request was successful
@@ -74,7 +79,16 @@ export default {
             } catch (error) {
                 console.log(error);
             }
-        }
+        },
+        async getOwnArrangementData(staff_id) {
+            try {
+                const response = await axios.get(`http://127.0.0.1:5000/arrangement/emp/${staff_id}`);
+                localStorage.setItem('empArrangement', JSON.stringify(response.data));
+                console.log(response.data);  
+            } catch (error) {
+                console.log(error);
+            }
+        },
     }
 }
 </script>
