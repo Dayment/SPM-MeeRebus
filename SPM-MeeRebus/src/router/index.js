@@ -1,8 +1,9 @@
-import { createRouter, createWebHistory } from 'vue-router';
-import HomeView from '../views/HomeView.vue';
-import APItest from '../views/APItest.vue';
-import CalendarView from '../views/CalendarView.vue';
-import LoginView from '@/views/LoginView.vue';
+import { createRouter, createWebHistory } from 'vue-router'
+import HomeView from '../views/HomeView.vue'
+import APItest from '../views/APItest.vue'
+import CalendarView from '../views/CalendarView.vue'
+import LoginView from '@/views/LoginView.vue'
+import TeamSchedule from '@/views/TeamSchedule.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -34,10 +35,28 @@ const router = createRouter({
     {
       path: '/home',
       name: 'Home',
-
-      component: () => import('../views/HomeView.vue'),
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/HomeView.vue')
     },
-  ],
-});
+    {
+      path: '/team',
+      name: 'Team',
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/TeamSchedule.vue')
+    },
+    {
+      path: '/company',
+      name: 'Company',
+      // route level code-splitting
+      // this generates a separate chunk (About.[hash].js) for this route
+      // which is lazy-loaded when the route is visited.
+      component: () => import('../views/CompanySchedule.vue')
+    },
+  ]
+})
 
 export default router;

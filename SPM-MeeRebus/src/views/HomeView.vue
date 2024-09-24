@@ -2,7 +2,7 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios'; 
-
+import Calendar from '@/components/Calendar.vue';
 import TheWelcome from '../components/TheWelcome.vue';
 
 const router = useRouter(); 
@@ -33,6 +33,7 @@ async function getEmpDetails(empId) {
 async function getWFH(empId) {
     try {
         const response = await axios.get(`http://127.0.0.1:5000/arrangement/emp/${empId}`);
+        localStorage.setItem('empArrangement', JSON.stringify(response.data));
         console.log(response.data);
     } catch (error) {
         console.error('Error fetching WFH data:', error);
@@ -42,7 +43,8 @@ async function getWFH(empId) {
 
 <template>
   <div>
-    <TheWelcome />
+    <Calendar />
     <!-- Can use the Employee details to determine how to display the calendar here -->
+    
   </div>
 </template>

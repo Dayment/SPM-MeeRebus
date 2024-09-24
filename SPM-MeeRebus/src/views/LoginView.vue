@@ -1,16 +1,3 @@
-<!-- <template>
-    <div class="login-container">
-        <h2>Login</h2>
-        <form @submit.prevent="handleLogin">
-            <div class="form-group">
-            <label for="empId">Username:</label>
-            <input type="text" id="empId" v-model="empId" required>
-            </div>
-            <button type="submit" class="login-btn">Login</button>
-        </form>
-    </div>
-</template> -->
-
 <template>
     <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
         <div class="col-md-4">
@@ -50,19 +37,42 @@ export default {
             if (isValid) {
                 console.log('Logged in with Employee ID:', this.empId);
                 localStorage.setItem('employeeId', this.empId);
+                // await this.getArrangementData(); 
                 this.$router.push('/home');
             } else {
-                this.errorMessage = 'Invalid Employee ID. Please try again.';
+                this.errorMessage = 'Invalid Employee ID or not authorized to log in from this location. Please try again.';
             }
         },
         async checkValidID() {
             try {
                 const response = await axios.get(`http://127.0.0.1:5000/employee/${this.empId}`);
+                localStorage.setItem('employeeData', JSON.stringify(response.data));
                 console.log(response.data);
-                return response.data;
+                
+                if (response.data.dept == "HR" || response.data.position == "MD" || response.data.position == "Director") {
+                    // Only if HR, get all the arrangement data
+                    await this.getArrangementData();
+                }
+                
+                return true; // Return true if the request was successful
             } catch (error) {
                 console.error(error);
+                // Check if the error response contains a specific message
+                if (error.response && error.response.data && error.response.data.error) {
+                    this.errorMessage = error.response.data.error;
+                } else {
+                    this.errorMessage = 'An unexpected error occurred. Please try again later.';
+                }
                 return false; 
+            }
+        },
+        async getArrangementData() {
+            try {
+                const response = await axios.get('http://127.0.0.1:5000/arrangement');
+                localStorage.setItem('arrangement', JSON.stringify(response.data));
+                console.log(response.data);  
+            } catch (error) {
+                console.log(error);
             }
         }
     }

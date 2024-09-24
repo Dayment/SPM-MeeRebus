@@ -4,9 +4,7 @@
       <div class="col-md-12">
         <!-- Header for the Month and Year with Dropdowns -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <button class="btn btn-primary" @click="previousMonth">
-            Previous
-          </button>
+          <button class="btn btn-primary" @click="previousMonth">Previous</button>
 
           <!-- Month Dropdown -->
           <div class="dropdown">
@@ -19,14 +17,11 @@
             >
               {{ currentMonth }}
             </button>
-            <ul
-              class="dropdown-menu scrollable-dropdown"
-              aria-labelledby="dropdownMonth"
-            >
+            <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownMonth">
               <li v-for="(month, index) in months" :key="month">
-                <a
-                  class="dropdown-item"
-                  href="#"
+                <a 
+                  class="dropdown-item" 
+                  href="#" 
                   @click="selectMonth(index)"
                   data-bs-dismiss="dropdown"
                 >
@@ -47,14 +42,11 @@
             >
               {{ currentYear }}
             </button>
-            <ul
-              class="dropdown-menu scrollable-dropdown"
-              aria-labelledby="dropdownYear"
-            >
+            <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownYear">
               <li v-for="year in years" :key="year">
-                <a
-                  class="dropdown-item"
-                  href="#"
+                <a 
+                  class="dropdown-item" 
+                  href="#" 
                   @click="selectYear(year)"
                   data-bs-dismiss="dropdown"
                 >
@@ -70,9 +62,7 @@
 
         <!-- Days of the Week -->
         <div class="row text-center bg-light mb-2">
-          <div class="col day-header" v-for="day in daysOfWeek" :key="day">
-            {{ day }}
-          </div>
+          <div class="col day-header" v-for="day in daysOfWeek" :key="day">{{ day }}</div>
         </div>
 
         <!-- Days of the Month -->
@@ -90,10 +80,11 @@
             v-for="day in daysInMonth"
             :key="day"
             @click="selectDate(day)"
-            :class="{
+            :class="{ 
               'selected-day': isSelectedDay(day),
               'today-border': isToday(day),
               'arranged-day': isArrangedDay(day) !== null
+
             }"
             :style="{ backgroundColor: getArrangementColor(day) }"
           > 
@@ -104,15 +95,7 @@
             <p><strong>Status:</strong> {{ isArrangedDayObj(day).status }}</p>
           </div>
           <!-- :style="{backgroundColor: isToday(day) ? 'white' : ''}" OLD STYLE -->
->>>>>>> Stashed changes
             <div class="day-content">{{ day }}</div>
-
-            <div v-if="getWFHForDay(day)" class="wfh-task">
-              <span class="task-title">
-                {{ getWFHForDay(day).name }} :
-                {{ getWFHForDay(day).reason || 'No Reason' }}</span
-              >
-            </div>
           </div>
         </div>
       </div>
@@ -121,41 +104,18 @@
 </template>
 
 <script>
+import axios from 'axios';
 export default {
-  props: {
-    wfhDetails: {
-      type: Array,
-      default: () => [],
-    },
-  },
   data() {
     const today = new Date();
     return {
       selectedDate: today,
       currentYear: today.getFullYear(),
       currentMonthIndex: today.getMonth(),
-      daysOfWeek: [
-        'Sunday',
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-      ],
+      daysOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
       months: [
-        'January',
-        'February',
-        'March',
-        'April',
-        'May',
-        'June',
-        'July',
-        'August',
-        'September',
-        'October',
-        'November',
-        'December',
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
       ],
       years: this.generateYears(),
       arrangements: [],
@@ -169,7 +129,7 @@ export default {
       return new Date(
         this.currentYear,
         this.currentMonthIndex + 1,
-        0,
+        0
       ).getDate();
     },
     firstDayOfMonth() {
@@ -178,16 +138,29 @@ export default {
   },
 
   mounted() {
-    this.checkArrangementData(); // Check for arrangements on mount
+    // this.checkArrangementData(); // Check for arrangements on mount
+    const staff_id = localStorage.getItem("employeeId")
+    // this.checkTeamArrangementData(staff_id) // Check for team arrangemetns on mount
+    this.checkCompanyArrangementData()
   },
 
   methods: {
     async checkArrangementData() {
       const storedArrangements = localStorage.getItem('empArrangement');
       if (storedArrangements) {
-        this.arrangements = JSON.parse(storedArrangements);
+        // this.arrangements = JSON.parse(storedArrangements);
       } else {
         // await this.fetchArrangementData(); 
+      }
+    },
+    async checkCompanyArrangementData() {
+      try{
+        const response = await axios.get(`http://127.0.0.1:5000/arrangement`);
+        localStorage.setItem("companyArrangements", JSON.stringify(response.data))
+        this.arrangements = response.data
+        console.log(this.arrangements)
+      }catch (error){
+        console.error("Error fetching data:", error);
       }
     },
     isArrangedDay(day) {
@@ -221,11 +194,6 @@ export default {
         // Return status or null if no arrangement
         return arrangement || null; 
     },
-      parseDate(dateString) {
-          return new Date(dateString); // Converts ISO string to Date object
-      },
-
-
 
     // Set the CSS colour depending on arrangement status
     getArrangementColor(day) {
@@ -247,7 +215,7 @@ export default {
         // this.arrangements = response.data;
         localStorage.getItem('empArrangement');
         checkHR = localStorage.getItem("empData")
-        if (checkHR.dept == "HR"){
+        if (checkHR.dept == "HR" || checkHR.position == "MD" || checkHR.position == "Director" ){
           const response = await axios.get('http://127.0.0.1:5000/arrangement')
           localStorage.setItem('arrangement', JSON.stringify(response.data));
         }
@@ -277,7 +245,7 @@ export default {
       this.selectedDate = new Date(
         this.currentYear,
         this.currentMonthIndex,
-        day,
+        day
       );
     },
     isToday(day) {
@@ -308,29 +276,6 @@ export default {
         years.push(i);
       }
       return years;
-    },
-
-    // fetch the WFH details for a specific day
-    getWFHForDay(day) {
-      const dateString = new Date(this.currentYear, this.currentMonthIndex, day)
-        .toISOString()
-        .split('T')[0];
-      return this.wfhDetails.find(
-        (wfh) => new Date(wfh.date).toISOString().split('T')[0] === dateString,
-      );
-    },
-
-    formatWFHTime(time) {
-      switch (time) {
-        case 1:
-          return 'AM';
-        case 2:
-          return 'PM';
-        case 3:
-          return 'All Day';
-        default:
-          return '';
-      }
     },
   },
 };
@@ -379,7 +324,7 @@ export default {
 
 /* Colour for approved WFH */
 .arranged-day {
-    background-color: lightgreen; 
+    background-color: lightgreen;
     border: 2px solid darkgreen;
 }
 
@@ -409,22 +354,5 @@ export default {
 .day-box:hover {
   cursor: pointer;
   background-color: #f8f9fa;
-}
-
-/* Styling for WFH task */
-.wfh-task {
-  background-color: #4a90e2;
-  color: white;
-  padding: 5px;
-  border-radius: 4px;
-  margin-top: 5px;
-  font-size: 12px;
-  font-weight: bold;
-  display: flex;
-  justify-content: space-between;
-}
-
-.task-time {
-  margin-right: 5px;
 }
 </style>
