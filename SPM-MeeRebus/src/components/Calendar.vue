@@ -104,12 +104,12 @@
             <p><strong>Status:</strong> {{ isArrangedDayObj(day).status }}</p>
           </div>
           <!-- :style="{backgroundColor: isToday(day) ? 'white' : ''}" OLD STYLE -->
->>>>>>> Stashed changes
+
             <div class="day-content">{{ day }}</div>
 
             <div v-if="getWFHForDay(day)" class="wfh-task">
               <span class="task-title">
-                {{ getWFHForDay(day).name }} :
+                {{ getWFHForDay(day).employee.staff_fname }} :
                 {{ getWFHForDay(day).reason || 'No Reason' }}</span
               >
             </div>
