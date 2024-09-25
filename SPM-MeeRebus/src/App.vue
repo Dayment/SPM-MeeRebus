@@ -21,6 +21,7 @@ const fetchEvents = () => {
     },
   ];
 };
+// Testing
 
 // Call fetchEvents when component is mounted
 onMounted(() => {
