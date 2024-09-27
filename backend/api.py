@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from supabase import create_client, Client
+from datetime import datetime, timedelta
 import os
 
 
@@ -247,6 +248,61 @@ def get_approved_arrangements():
         return jsonify(output), 200
     else:
         return jsonify({"error": "No arrangements found"}), 404
+    
+# Create WFH Request
+@app.route('/arrangement/submit', methods=['POST'])
+def create_WFH_request():
+    try:
+        # Parse the incoming request data
+        data = request.json
+        staff_id = data.get('staff_id')
+        wfh_date = data.get('date')  # Expecting date and time in the format "YYYY-MM-DD HH:MM:SS"
+        wfh_type = data.get('type')  # 'regular' or 'ad-hoc'
+        frequency = data.get('frequency', None)  # Optional for regular WFH
+        
+        # Ensure that the staff_id and date are provided
+        if not staff_id or not wfh_date or not wfh_type:
+            return jsonify({"error": "Missing required fields: staff_id, date, or type."}), 400
+
+        # Convert the date to a datetime object for validation
+        try:
+            wfh_date_obj = datetime.strptime(wfh_date, "%Y-%m-%d %H:%M:%S")  # Parse full timestamp
+        except ValueError:
+            return jsonify({"error": "Invalid date format. Use 'YYYY-MM-DD HH:MM:SS'."}), 400
+        
+        # Check if the WFH date is valid (not in the past or blocked)
+        blocked_days = ['2024-12-25 00:00:00', '2024-01-01 00:00:00']  # Example blocked days
+        
+        # Check if the date is in the past
+        today = datetime.now()
+        if wfh_date_obj < today:
+            return jsonify({"error": "The selected date is in the past."}), 400
+        
+        # Check if the selected date is blocked (holiday, office closure, etc.)
+        if wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S') in blocked_days:
+            return jsonify({"error": "The selected day is blocked off by HR or management."}), 400
+
+        # Insert the WFH request into the database (convert wfh_date_obj back to string)
+        result = supabase.table('arrangement').insert({
+            "staff_id": staff_id,
+            "date": wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S'),  # Convert datetime to string with time
+            "type": wfh_type,
+            "frequency": frequency,
+            "status": 0  # 0 = Pending Approval
+        }).execute()
+
+        # Check for successful insertion
+        if result.status_code == 201:
+            return jsonify({"message": "WFH request submitted successfully and is now pending approval."}), 201
+        else:
+            return jsonify({"error": "Failed to create WFH request."}), 500
+
+    except Exception as e:
+        # Catch any errors and return a server error response
+        return jsonify({"error": str(e)}), 500
+
+    
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
