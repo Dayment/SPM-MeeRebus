@@ -4,6 +4,7 @@ import { ref, onMounted } from 'vue';
 import VueCal from 'vue-cal';
 import 'vue-cal/dist/vuecal.css'; // Import default CSS
 import axios from 'axios';
+import eventBus from './eventBus';
 
 // Data for the calendar events
 const events = ref([]);
@@ -25,6 +26,11 @@ const fetchEvents = () => {
 // Call fetchEvents when component is mounted
 onMounted(() => {
   fetchEvents();
+  const isLoggedIn = localStorage.getItem('employeeId');
+      if (isLoggedIn) {
+        eventBus.isLoggedIn = true; 
+      }
+
 });
 </script>
 

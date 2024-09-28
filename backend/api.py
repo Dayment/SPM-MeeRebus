@@ -101,39 +101,143 @@ def get_employee_arrangement(staff_id):
     
 
 # Get arrangment for employee's team
-@app.route('/arrangement/dept/<int:staff_id>', methods=['GET'])
-def get_arrangements_by_department(staff_id):
-    # Get department for the employee
-    employee_response = supabase.table('employee').select('position').eq('staff_id', staff_id).execute()
+# @app.route('/arrangement/posi/<int:staff_id>', methods=['GET'])
+# def get_arrangements_by_team(staff_id):
+#     # Get department for the employee
+#     employee_response = supabase.table('employee').select('position').eq('staff_id', staff_id).execute()
+    
+#     if not employee_response.data:
+#         return jsonify({"error": "Employee not found"}), 404
+    
+#     posi = employee_response.data[0]['position']
+
+#     # Get all the info for staff with that posiiton / department
+#     position_staff_response = supabase.table('employee').select('staff_id').eq('position', posi).eq('country', 'Singapore').execute()
+#     # print("-------------------------------------CHECK HERE-----------------------------------")
+#     # print(position_staff_id)
+#     # print(type(position_staff_id))
+
+#     # Extract staff IDs into an array
+#     staff_ids = [staff['staff_id'] for staff in position_staff_response.data]
+
+#     # Get all arrangements for these staff IDs
+#     arrangements_response = supabase.table('arrangement').select('*').in_('staff_id', staff_ids).execute()
+#     # print("-------------------------------------CHECK HERE-----------------------------------")
+#     # print(arrangements_response.data)
+
+#     if arrangements_response.data:
+#         return jsonify(arrangements_response.data), 200
+#     else:
+#         return jsonify({"error": "No arrangements found for this department"}), 404
+    
+
+@app.route('/arrangement/posi/<int:staff_id>', methods=['GET'])
+def get_arrangements_by_position(staff_id):
+    # Get employee details
+    employee_response = supabase.table('employee').select('*').eq('staff_id', staff_id).execute()
     
     if not employee_response.data:
         return jsonify({"error": "Employee not found"}), 404
     
-    posi = employee_response.data[0]['position']
+    # Get position
+    employee_data = employee_response.data[0]
+    position = employee_data['position']
 
-    # Get all the info for staff with that posiiton / department
-    position_staff_response = supabase.table('employee').select('staff_id').eq('position', posi).eq('country', 'Singapore').execute()
+    position_staff_response = supabase.table('employee').select('staff_id').eq('position', position).eq('country', 'Singapore').execute()
     # print("-------------------------------------CHECK HERE-----------------------------------")
-    # print(position_staff_id)
-    # print(type(position_staff_id))
+    # print(position_staff_response)
 
-    # Extract staff IDs into an array
     staff_ids = [staff['staff_id'] for staff in position_staff_response.data]
 
-    # Get all arrangements for these staff IDs
+    # Get all arrangements for employees with the same position. This is team schedule
     arrangements_response = supabase.table('arrangement').select('*').in_('staff_id', staff_ids).execute()
-    # print("-------------------------------------CHECK HERE-----------------------------------")
-    # print(arrangements_response.data)
+    
+    # print("-----------------------------------------------")
+    # print(arrangements_response)
 
     if arrangements_response.data:
-        return jsonify(arrangements_response.data), 200
+        output = []
+        
+        for arrangement in arrangements_response.data:
+            # Get employee details for each arrangement
+            arrangement_staff_response = supabase.table('employee').select('*').eq('staff_id', arrangement['staff_id']).execute()
+            
+            if arrangement_staff_response.data:
+                staff_info = arrangement_staff_response.data[0]
+                
+                # Manually building, don't think the 1 liner version will cut it here
+                output.append({
+                    "arrangement_id": arrangement['arrangement_id'],
+                    "date": arrangement['date'],
+                    "employee": staff_info,
+                    "reason": arrangement.get('reason'),
+                    "reporting_manager": arrangement['reporting_manager'],
+                    "staff_id": arrangement['staff_id'],
+                    "status": arrangement['status'],
+                    "time": arrangement['time']
+                })
+        
+        return jsonify(output), 200
     else:
-        return jsonify({"error": "No arrangements found for this department"}), 404
+        return jsonify({"error": "No arrangements found for this position"}), 404
     
-# Get all approved WFH arrangements
+
+# Get arrangement for a whole department
+@app.route('/arrangement/dept/<int:staff_id>', methods=['GET'])
+def get_arrangements_by_department(staff_id):
+    # Get employee details
+    employee_response = supabase.table('employee').select('*').eq('staff_id', staff_id).execute()
+    
+    if not employee_response.data:
+        return jsonify({"error": "Employee not found"}), 404
+    
+    # Get department
+    employee_data = employee_response.data[0]
+    department = employee_data['dept']
+
+    department_staff_response = supabase.table('employee').select('staff_id').eq('dept', department).eq('country', 'Singapore').execute()
+    # print("-------------------------------------CHECK HERE-----------------------------------")
+    # print(department)
+
+    staff_ids = [staff['staff_id'] for staff in department_staff_response.data]
+
+    # Get all arrangements for employees with the same position. This is team schedule
+    arrangements_response = supabase.table('arrangement').select('*').in_('staff_id', staff_ids).execute()
+    
+    print("-----------------------------------------------")
+    print(arrangements_response.data)
+
+    if arrangements_response.data:
+        output = []
+        
+        for arrangement in arrangements_response.data:
+            # Get employee details for each arrangement
+            arrangement_staff_response = supabase.table('employee').select('*').eq('staff_id', arrangement['staff_id']).execute()
+            
+            if arrangement_staff_response.data:
+                staff_info = arrangement_staff_response.data[0]
+                
+                # Manually building, don't think the 1 liner version will cut it here
+                output.append({
+                    "arrangement_id": arrangement['arrangement_id'],
+                    "date": arrangement['date'],
+                    "employee": staff_info,
+                    "reason": arrangement.get('reason'),
+                    "reporting_manager": arrangement['reporting_manager'],
+                    "staff_id": arrangement['staff_id'],
+                    "status": arrangement['status'],
+                    "time": arrangement['time']
+                })
+        
+        return jsonify(output), 200
+    else:
+        return jsonify({"error": "No arrangements found for this position"}), 404
+
+
+# Get all pending and approved WFH arrangements
 @app.route('/arrangement/approved', methods=['GET'])
 def get_approved_arrangements():
-    response = supabase.table('arrangement').select('*, employee!arrangement_staff_id_fkey(*)').gt('status', 0).execute()
+    response = supabase.table('arrangement').select('*, employee!arrangement_staff_id_fkey(*)').in_('status', [0,1]).execute()
     
     if response.data:
         return jsonify(response.data), 200  
