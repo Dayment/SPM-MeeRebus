@@ -55,10 +55,28 @@
               </li>
             </ul>
           </div>
-
+          <!-- Team Dropdown -->
+          <div class="dropdown">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="dropdownTeam"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              >
+                {{ selectedTeam }}
+              </button>
+              <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownTeam">
+                <li v-for="team in teams" :key="team">
+                  <a class="dropdown-item" 
+                  href="#" @click="selectTeam(team)" data-bs-dismiss="dropdown">
+          {{ team }}
+        </a>
+      </li>
+    </ul>
+  </div>
           <button class="btn btn-primary" @click="nextMonth">Next</button>
         </div>
-
 
         <!-- Days of the Week -->
         <div class="row text-center bg-light mb-2">
@@ -119,6 +137,8 @@ export default {
       ],
       years: this.generateYears(),
       arrangements: [],
+      teams: ['HR', 'Finance', 'Development', 'Sales'],
+      selectedTeam: 'HR',
     };
   },
   computed: {
