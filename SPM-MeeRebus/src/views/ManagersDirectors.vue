@@ -1,14 +1,14 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'; 
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAllEmployee, getDeptApprovedArrangement } from '../api/api';
 import Calendar from '../components/Calendar.vue';
 
 const router = useRouter();
 const approvedWFHDetails = ref([]);
-const searchQuery = ref(''); 
-const startDate = ref(null); 
-const endDate = ref(null); 
+const searchQuery = ref('');
+const startDate = ref(null);
+const endDate = ref(null);
 
 onMounted(async () => {
   const empId = localStorage.getItem('employeeId');
