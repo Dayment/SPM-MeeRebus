@@ -6,6 +6,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
+'''
+This script uses a chrome webdriver that requires Chrome browser version 115 or newer
+Ensure that selenium library is installed:
+pip install selenium
+
+Run the following command: 
+python test_SCRUM-8.py
+'''
+
 # Set up the path to the ChromeDriver using the Service class
 service = Service('./chromedriver.exe')  # Path to ChromeDriver (assuming it's in the same folder)
 
