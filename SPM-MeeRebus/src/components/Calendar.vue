@@ -93,17 +93,18 @@
             :class="{
               'selected-day': isSelectedDay(day),
               'today-border': isToday(day),
-              'arranged-day': isArrangedDay(day) !== null
+              // 'arranged-day': isArrangedDay(day) !== null
             }"
-            :style="{ backgroundColor: getArrangementColor(day) }"
+            :style="{backgroundColor: isToday(day) ? 'white' : ''}
+            "
           > 
           <!-- Insert arrangement details here. Reason, etc -->
-          <div v-if="isArrangedDayObj(day) !== null">
+          <!-- <div v-if="isArrangedDayObj(day) !== null">
             <p><strong>Staff ID: </strong> {{ isArrangedDayObj(day).staff_id }}</p>
             <p><strong>Reason:</strong> {{ isArrangedDayObj(day).reason }}</p>
             <p><strong>Status:</strong> {{ isArrangedDayObj(day).status }}</p>
-          </div>
-          <!-- :style="{backgroundColor: isToday(day) ? 'white' : ''}" OLD STYLE -->
+          </div> -->
+          <!-- :style="{ backgroundColor: getArrangementColor(day) }" OLD STYLE -->
 
             <div class="day-content">{{ day }}</div>
 

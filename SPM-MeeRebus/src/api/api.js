@@ -32,3 +32,26 @@ export const getAllApprovedArrangement = async () => {
       throw error;
     }
   };
+
+export const getTeamApprovedArrangement = async (empId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/arrangement/posi/${empId}`);
+      localStorage.setItem("teamArrangements", JSON.stringify(response.data));
+      return response.data; 
+    } catch (error) {
+      console.error('Error fetching approved arrangements:', error);
+      throw error; 
+    }
+  };
+
+  export const getDeptApprovedArrangement = async (empId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/arrangement/dept/${empId}`);
+      localStorage.setItem("deptArrangements", JSON.stringify(response.data));
+      return response.data; 
+    } catch (error) {
+      console.error('Error fetching approved arrangements:', error);
+      throw error; 
+    }
+  };
+

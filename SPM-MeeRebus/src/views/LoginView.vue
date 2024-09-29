@@ -6,7 +6,7 @@
             <form @submit.prevent="handleLogin">
                 <div class="form-group">
                     <label for="empId">Employee ID:</label>
-                    <input type="number" id="empId" v-model="empId" class="form-control" required>
+                    <input type="number" id="empId" v-model="empId" class="form-control" placeholder="Please key in your employee ID" required>
                 </div>
                 <button type="submit" class="btn btn-primary btn-block">Login</button>
             </form>
@@ -20,6 +20,7 @@
 
 <script>
 import axios from 'axios';
+import eventBus from '../eventBus'; 
 
 export default {
     name: 'LoginView',
@@ -27,6 +28,7 @@ export default {
         return {
             empId: '',
             errorMessage: ''
+            
         }
     },
     methods: {
@@ -38,6 +40,18 @@ export default {
                 console.log('Logged in with Employee ID:', this.empId);
                 localStorage.setItem('employeeId', this.empId);
                 // await this.getArrangementData(); 
+                eventBus.isLoggedIn = true; 
+                // await this.checkEmployeeRole(); 
+
+                const employeeData = JSON.parse(localStorage.getItem('employeeData'));
+                if (employeeData && employeeData.role === 1 && employeeData.position != "Director") {
+                    eventBus.isHR = true; 
+                }
+                if (employeeData && employeeData.position === "Director"){
+                    eventBus.isDir = true;
+                }
+
+
                 this.$router.push('/home');
             } else {
                 this.errorMessage = 'Invalid Employee ID or not authorized to log in from this location. Please try again.';
@@ -49,17 +63,23 @@ export default {
                 localStorage.setItem('employeeData', JSON.stringify(response.data));
                 console.log(response.data);
                 
-                if (response.data.dept == "HR" || response.data.position == "MD" || response.data.position == "Director") {
+                if ((response.data.role == 1 || response.data.position == "MD") && response.data.position != "Director") {
                     // Only if HR, get all the arrangement data
+                    eventBus.isHR = true; 
+                    localStorage.setItem('isHR', true);
+
                     await this.getArrangementData();
                     // Get their own arrangement as well
                     await this.getOwnArrangementData(response.data.staff_id)
+                }else if (response.data.role == 3 || response.data.position == "Director"){
+                    eventBus.isDir = true; 
+                    localStorage.setItem('isDir', true);
                 }else{
                     // Get own WFH arrangment
                     await this.getOwnArrangementData(response.data.staff_id)
                 }
                 
-                return true; // Return true if the request was successful
+                return true;
             } catch (error) {
                 console.error(error);
                 // Check if the error response contains a specific message
@@ -89,10 +109,20 @@ export default {
                 console.log(error);
             }
         },
+        async checkEmployeeRole() {
+            try {
+                const employeeData = JSON.parse(localStorage.getItem('employeeData'));
+                if (employeeData && employeeData.role === 1) {
+                    eventBus.isHR = true; 
+                }
+                if (employeeData && employeeData.position === "Director"){
+                    eventBus.isDir = true;
+                }
+
+            } catch (error) {
+                console.error(error);
+            }
+        },
     }
 }
 </script>
-
-<style scoped>
-/* Add any custom styles here */
-</style>

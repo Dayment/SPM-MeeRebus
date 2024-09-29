@@ -104,181 +104,181 @@
 </template>
 
 <script>
-import axios from 'axios';
-export default {
-  data() {
-    const today = new Date();
-    return {
-      selectedDate: today,
-      currentYear: today.getFullYear(),
-      currentMonthIndex: today.getMonth(),
-      daysOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-      months: [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-      ],
-      years: this.generateYears(),
-      arrangements: [],
-    };
-  },
-  computed: {
-    currentMonth() {
-      return this.months[this.currentMonthIndex];
-    },
-    daysInMonth() {
-      return new Date(
-        this.currentYear,
-        this.currentMonthIndex + 1,
-        0
-      ).getDate();
-    },
-    firstDayOfMonth() {
-      return new Date(this.currentYear, this.currentMonthIndex, 1).getDay();
-    },
-  },
+// import axios from 'axios';
+// export default {
+//   data() {
+//     const today = new Date();
+//     return {
+//       selectedDate: today,
+//       currentYear: today.getFullYear(),
+//       currentMonthIndex: today.getMonth(),
+//       daysOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+//       months: [
+//         'January', 'February', 'March', 'April', 'May', 'June',
+//         'July', 'August', 'September', 'October', 'November', 'December'
+//       ],
+//       years: this.generateYears(),
+//       arrangements: [],
+//     };
+//   },
+//   computed: {
+//     currentMonth() {
+//       return this.months[this.currentMonthIndex];
+//     },
+//     daysInMonth() {
+//       return new Date(
+//         this.currentYear,
+//         this.currentMonthIndex + 1,
+//         0
+//       ).getDate();
+//     },
+//     firstDayOfMonth() {
+//       return new Date(this.currentYear, this.currentMonthIndex, 1).getDay();
+//     },
+//   },
 
-  mounted() {
-    // this.checkArrangementData(); // Check for arrangements on mount
-    const staff_id = localStorage.getItem("employeeId")
-    this.checkTeamArrangementData(staff_id) // Check for team arrangemetns on mount
-  },
+//   mounted() {
+//     // this.checkArrangementData(); // Check for arrangements on mount
+//     const staff_id = localStorage.getItem("employeeId")
+//     this.checkTeamArrangementData(staff_id) // Check for team arrangemetns on mount
+//   },
 
-  methods: {
-    async checkArrangementData() {
-      const storedArrangements = localStorage.getItem('empArrangement');
-      if (storedArrangements) {
-        // this.arrangements = JSON.parse(storedArrangements);
-      } else {
-        // await this.fetchArrangementData(); 
-      }
-    },
-    async checkTeamArrangementData(staff_id) {
-      try{
-        const response = await axios.get(`http://127.0.0.1:5000/arrangement/dept/${staff_id}`);
-        localStorage.setItem("teamArrangements", JSON.stringify(response.data))
-        this.arrangements = response.data
-        console.log(this.arrangements)
-      }catch (error){
-        console.error("Error fetching data:", error);
-      }
-    },
-    isArrangedDay(day) {
-        // Creating the string for the date to do checking with the arrangement date
-        const formattedDate = `${this.currentYear}-${String(this.currentMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+//   methods: {
+//     async checkArrangementData() {
+//       // const storedArrangements = localStorage.getItem('empArrangement');
+//       if (storedArrangements) {
+//         // this.arrangements = JSON.parse(storedArrangements);
+//       } else {
+//         // await this.fetchArrangementData(); 
+//       }
+//     },
+//     async checkTeamArrangementData(staff_id) {
+//       try{
+//         const response = await axios.get(`http://127.0.0.1:5000/arrangement/posi/${staff_id}`);
+//         localStorage.setItem("teamArrangements", JSON.stringify(response.data))
+//         this.arrangements = response.data
+//         console.log(this.arrangements)
+//       }catch (error){
+//         console.error("Error fetching data:", error);
+//       }
+//     },
+//     isArrangedDay(day) {
+//         // Creating the string for the date to do checking with the arrangement date
+//         const formattedDate = `${this.currentYear}-${String(this.currentMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
-        const arrangement = this.arrangements.find(arrangement => {
-            const arrangementDate = new Date(arrangement.date);
-            if (!isNaN(arrangementDate.getTime())) { 
-                const arrangementISO = arrangementDate.toISOString().split('T')[0];
-                return arrangementISO === formattedDate; // Check for matching date
-            }
-            return false; // Skip invalid dates
-        });
-        // Return status or null if no arrangement
-        return arrangement ? arrangement.status : null; 
-    },
-    // Using this for conditional rendering in the V-if. Might refactor with above code if have time
-    isArrangedDayObj(day) {
-        // Creating the string for the date to do checking with the arrangement date
-        const formattedDate = `${this.currentYear}-${String(this.currentMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+//         const arrangement = this.arrangements.find(arrangement => {
+//             const arrangementDate = new Date(arrangement.date);
+//             if (!isNaN(arrangementDate.getTime())) { 
+//                 const arrangementISO = arrangementDate.toISOString().split('T')[0];
+//                 return arrangementISO === formattedDate; // Check for matching date
+//             }
+//             return false; // Skip invalid dates
+//         });
+//         // Return status or null if no arrangement
+//         return arrangement ? arrangement.status : null; 
+//     },
+//     // Using this for conditional rendering in the V-if. Might refactor with above code if have time
+//     isArrangedDayObj(day) {
+//         // Creating the string for the date to do checking with the arrangement date
+//         const formattedDate = `${this.currentYear}-${String(this.currentMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
-        const arrangement = this.arrangements.find(arrangement => {
-            const arrangementDate = new Date(arrangement.date);
-            if (!isNaN(arrangementDate.getTime())) { 
-                const arrangementISO = arrangementDate.toISOString().split('T')[0];
-                return arrangementISO === formattedDate; // Check for matching date
-            }
-            return false; // Skip invalid dates
-        });
-        // Return status or null if no arrangement
-        return arrangement || null; 
-    },
+//         const arrangement = this.arrangements.find(arrangement => {
+//             const arrangementDate = new Date(arrangement.date);
+//             if (!isNaN(arrangementDate.getTime())) { 
+//                 const arrangementISO = arrangementDate.toISOString().split('T')[0];
+//                 return arrangementISO === formattedDate; // Check for matching date
+//             }
+//             return false; // Skip invalid dates
+//         });
+//         // Return status or null if no arrangement
+//         return arrangement || null; 
+//     },
 
-    // Set the CSS colour depending on arrangement status
-    getArrangementColor(day) {
-        const status = this.isArrangedDay(day);
+//     // Set the CSS colour depending on arrangement status
+//     getArrangementColor(day) {
+//         const status = this.isArrangedDay(day);
         
-        if (status === 1) {
-            return 'lightgreen'; // Accepted arrangements
-        } else if (status === 0) {
-            return 'orange'; // Pending arrangements
-        } else if (status === 2) {
-            return 'red'; // Denied arrangements
-        }
+//         if (status === 1) {
+//             return 'lightgreen'; // Accepted arrangements
+//         } else if (status === 0) {
+//             return 'orange'; // Pending arrangements
+//         } else if (status === 2) {
+//             return 'red'; // Denied arrangements
+//         }
         
-        return ''; // Default background color (no arrangements)
-    },
-    async fetchArrangementData() {
-      try {
-        // const response = await axios.get('http://127.0.0.1:5000/arrangement');
-        // this.arrangements = response.data;
-        localStorage.getItem('empArrangement');
-        checkHR = localStorage.getItem("empData")
-        if (checkHR.dept == "HR"){
-          const response = await axios.get('http://127.0.0.1:5000/arrangement')
-          localStorage.setItem('arrangement', JSON.stringify(response.data));
-        }
+//         return ''; // Default background color (no arrangements)
+//     },
+//     async fetchArrangementData() {
+//       try {
+//         // const response = await axios.get('http://127.0.0.1:5000/arrangement');
+//         // this.arrangements = response.data;
+//         localStorage.getItem('empArrangement');
+//         checkHR = localStorage.getItem("empData")
+//         if (checkHR.dept == "HR"){
+//           const response = await axios.get('http://127.0.0.1:5000/arrangement')
+//           localStorage.setItem('arrangement', JSON.stringify(response.data));
+//         }
 
-      } catch (error) {
-        console.error("Error fetching arrangement data:", error);
-      }
-    },
+//       } catch (error) {
+//         console.error("Error fetching arrangement data:", error);
+//       }
+//     },
 
-    previousMonth() {
-      if (this.currentMonthIndex === 0) {
-        this.currentMonthIndex = 11;
-        this.currentYear--;
-      } else {
-        this.currentMonthIndex--;
-      }
-    },
-    nextMonth() {
-      if (this.currentMonthIndex === 11) {
-        this.currentMonthIndex = 0;
-        this.currentYear++;
-      } else {
-        this.currentMonthIndex++;
-      }
-    },
-    selectDate(day) {
-      this.selectedDate = new Date(
-        this.currentYear,
-        this.currentMonthIndex,
-        day
-      );
-    },
-    isToday(day) {
-      const today = new Date();
-      return (
-        today.getFullYear() === this.currentYear &&
-        today.getMonth() === this.currentMonthIndex &&
-        today.getDate() === day
-      );
-    },
-    isSelectedDay(day) {
-      return (
-        this.selectedDate.getFullYear() === this.currentYear &&
-        this.selectedDate.getMonth() === this.currentMonthIndex &&
-        this.selectedDate.getDate() === day
-      );
-    },
-    selectMonth(index) {
-      this.currentMonthIndex = index;
-    },
-    selectYear(year) {
-      this.currentYear = year;
-    },
-    generateYears() {
-      const currentYear = new Date().getFullYear();
-      const years = [];
-      for (let i = currentYear - 10; i <= currentYear + 5; i++) {
-        years.push(i);
-      }
-      return years;
-    },
-  },
-};
-</script>
+//     previousMonth() {
+//       if (this.currentMonthIndex === 0) {
+//         this.currentMonthIndex = 11;
+//         this.currentYear--;
+//       } else {
+//         this.currentMonthIndex--;
+//       }
+//     },
+//     nextMonth() {
+//       if (this.currentMonthIndex === 11) {
+//         this.currentMonthIndex = 0;
+//         this.currentYear++;
+//       } else {
+//         this.currentMonthIndex++;
+//       }
+//     },
+//     selectDate(day) {
+//       this.selectedDate = new Date(
+//         this.currentYear,
+//         this.currentMonthIndex,
+//         day
+//       );
+//     },
+//     isToday(day) {
+//       const today = new Date();
+//       return (
+//         today.getFullYear() === this.currentYear &&
+//         today.getMonth() === this.currentMonthIndex &&
+//         today.getDate() === day
+//       );
+//     },
+//     isSelectedDay(day) {
+//       return (
+//         this.selectedDate.getFullYear() === this.currentYear &&
+//         this.selectedDate.getMonth() === this.currentMonthIndex &&
+//         this.selectedDate.getDate() === day
+//       );
+//     },
+//     selectMonth(index) {
+//       this.currentMonthIndex = index;
+//     },
+//     selectYear(year) {
+//       this.currentYear = year;
+//     },
+//     generateYears() {
+//       const currentYear = new Date().getFullYear();
+//       const years = [];
+//       for (let i = currentYear - 10; i <= currentYear + 5; i++) {
+//         years.push(i);
+//       }
+//       return years;
+//     },
+//   },
+// };
+// </script>
 
 <style scoped>
 

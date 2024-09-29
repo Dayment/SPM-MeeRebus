@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'; 
 import { useRouter } from 'vue-router';
-import { getAllEmployee, getAllApprovedArrangement } from '../api/api';
+import { getAllEmployee, getDeptApprovedArrangement } from '../api/api';
 import Calendar from '../components/Calendar.vue';
 
 const router = useRouter();
@@ -17,7 +17,7 @@ onMounted(async () => {
   } else {
     try {
       const empDetails = await getAllEmployee(empId);
-      const wfhDetails = await getAllApprovedArrangement(empId);
+      const wfhDetails = await getDeptApprovedArrangement(empId);
 
       approvedWFHDetails.value = wfhDetails;
 
