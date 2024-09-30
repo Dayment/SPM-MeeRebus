@@ -75,7 +75,76 @@
       </li>
     </ul>
   </div>
-          <button class="btn btn-primary" @click="nextMonth">Next</button>
+  <!-- New Conditional Dropdown for systems solutioning Team -->
+  <div v-if="selectedTeam === 'System Solutioning'" class="dropdown">
+      <button
+        class="btn btn-secondary dropdown-toggle"
+        type="button"
+        id="dropdownsyssTeam"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        {{ selectedsyssTeam }}
+      </button>
+      <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownsyssTeam">
+        <li v-for="syssTeam in syssTeams" :key="syssTeam">
+          <a class="dropdown-item" 
+            href="#" 
+            @click="selectsyssTeam(syssTeam)" 
+            data-bs-dismiss="dropdown">
+            {{ syssTeam }}
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- New Conditional Dropdown for engineering Team -->
+  <div v-else-if="selectedTeam === 'Engineering'" class="dropdown">
+      <button
+        class="btn btn-secondary dropdown-toggle"
+        type="button"
+        id="dropdownengTeam"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        {{ selectedengTeam }}
+      </button>
+      <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownengTeam">
+        <li v-for="engTeam in engTeams" :key="engTeam">
+          <a class="dropdown-item" 
+            href="#" 
+            @click="selectengTeam(engTeam)" 
+            data-bs-dismiss="dropdown">
+            {{ engTeam }}
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- New Conditional Dropdown for HR Team -->
+  <div v-else-if="selectedTeam === 'HR'" class="dropdown">
+      <button
+        class="btn btn-secondary dropdown-toggle"
+        type="button"
+        id="dropdownhrTeam"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        {{ selectedhrTeam }}
+      </button>
+      <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownhrTeam">
+        <li v-for="hrTeam in hrTeams" :key="hrTeam">
+          <a class="dropdown-item" 
+            href="#" 
+            @click="selectengTeam(hrTeam)" 
+            data-bs-dismiss="dropdown">
+            {{ hrTeam }}
+          </a>
+        </li>
+      </ul>
+    </div>
+    <button class="btn btn-primary" @click="nextMonth">Next</button>
+  </div>
         </div>
 
         <!-- Days of the Week -->
@@ -118,7 +187,7 @@
         </div>
       </div>
     </div>
-  </div>
+  
 
   <main>
     <Calendar :wfh-details="approvedWFHDetails" />
@@ -195,8 +264,14 @@ export default {
       ],
       years: this.generateYears(),
       arrangements: [],
-      teams: ['HR', 'Finance', 'Development', 'Sales'],
+      teams: ['Sales', 'Consultancy', 'System Solutioning', 'Engineering','HR', 'Finance', 'IT'],
       selectedTeam: 'HR',
+      syssTeams: ['Developers', 'Support Team'],
+      selectedsyssTeam: 'Developers',
+      engTeams: ['Senior Engineers', 'Junior Engineers', 'Call Centre', 'Operation Planning Team'],
+      selectedengTeam: 'Senior Engineers',
+      hrTeams: ['HR Team', 'L&D team', 'Admin Team'],
+      selectedhrTeam: 'HR Team'
     };
   },
   computed: {
@@ -354,6 +429,27 @@ export default {
         years.push(i);
       }
       return years;
+    },
+    selectTeam(team) {
+      this.selectedTeam = team;
+      if (team !== 'System Solutioning') {
+        this.selectedsyssTeam = 'Developers'; // Reset sys team selection when not IT
+      }
+      else if (team !== 'Engineering') {
+        this.selectedengTeam = 'Senior Engineers'; // Reset eng team selection when not IT
+      }
+      else if (team !== 'HR') {
+        this.selectedhrTeam = 'HR Team'; // Reset hr team selection when not IT
+      }
+    },
+    selectsyssTeam(syssTeam) {
+      this.selectedsyssTeam = syssTeam;
+    },
+    selectengTeam(engTeam) {
+      this.selectedengTeam = engTeam;
+    },
+    selectengTeam(hrTeam) {
+      this.selectedhrTeam = hrTeam;
     },
   },
 };
