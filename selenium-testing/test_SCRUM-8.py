@@ -59,18 +59,18 @@ try:
         driver.quit()
         exit()
 
-    # Check the current month (should be September)
+    # Check the current month (should be October)
     current_month = month_dropdown.text
-    if current_month != "September":
-        print("Initial month is not September.")
+    if current_month != "October":
+        print("Initial month is not October.")
         driver.quit()
         exit()
 
-    # Click "Previous" and check if the month changes to August
+    # Click "Previous" and check if the month changes to September
     prev_button.click()
     time.sleep(2)  # Wait for UI update
     updated_month = month_dropdown.text
-    if updated_month == "August":
+    if updated_month == "September":
         print("Previous month navigation successful.")
         
         # Now check for the Next button directly after successfully navigating to the Previous month
@@ -78,11 +78,11 @@ try:
             next_button = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Next')]"))
             )
-            # Click "Next" and check if the month changes to September
+            # Click "Next" and check if the month changes to October
             next_button.click()
             time.sleep(2)  # Wait for UI update
             updated_month = month_dropdown.text
-            if updated_month == "September":
+            if updated_month == "October":
                 print("Next month navigation successful.")
             else:
                 print("Next month navigation failed.")
