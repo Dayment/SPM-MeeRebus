@@ -1,19 +1,11 @@
 <template>
   <form @submit.prevent="handleSubmit">
     <div class="form-group">
-      <label for="wfh-type">WFH Type:</label>
-      <select v-model="wfhType" id="wfh-type" class="form-control" required>
-        <option value="regular">Regular</option>
-        <option value="ad-hoc">Ad-hoc</option>
-      </select>
-    </div>
-
-    <!-- Frequency Selector for Regular WFH -->
-    <div v-if="wfhType === 'regular'" class="form-group">
-      <label for="frequency">Frequency:</label>
-      <select v-model="frequency" id="frequency" class="form-control">
-        <option value="weekly">Weekly</option>
-        <option value="fortnightly">Fortnightly</option>
+      <label for="wfh-time">WFH time:</label>
+      <select v-model="wfhtime" id="wfh-time" class="form-control" required>
+        <option value="1">AM</option>
+        <option value="2">PM</option>
+        <option value="3">All Day</option>
       </select>
     </div>
 
@@ -32,19 +24,6 @@
       />
     </div>
 
-    <!-- Time Selector -->
-    <div class="form-group">
-      <label for="time">Select Time:</label>
-      <input
-        type="time"
-        id="time"
-        v-model="selectedTime"
-        class="form-control"
-        required
-        @change="validateDate"
-      />
-    </div>
-
     <div v-if="invalidDateMessage" class="alert alert-danger">
       {{ invalidDateMessage }}
     </div>
@@ -60,20 +39,15 @@
         {{ selectedTime }}
       </p>
       <p>
-        <strong>Type:</strong>
-        {{ wfhType === 'regular' ? 'Regular' : 'Ad-hoc' }}
+        <strong>time:</strong>
+        {{ wfhtime === 'AM' ? 'PM' : 'Full day' }}
       </p>
-      <p v-if="wfhType === 'regular'">
+      <p v-if="wfhtime === 'regular'">
         <strong>Frequency:</strong> {{ frequency }}
       </p>
     </div>
 
-    <button
-      type="submit"
-      class="btn btn-primary"
-    >
-      Submit WFH Request
-    </button>
+    <button type="submit" class="btn btn-primary">Submit WFH Request</button>
   </form>
 </template>
 
@@ -96,19 +70,19 @@ export default {
   },
   data() {
     return {
-      wfhType: 'regular',
-      frequency: 'weekly',
+      wfhtime: '',
+
       selectedDate: '',
-      selectedTime: '',
       invalidDateMessage: '',
     };
   },
   methods: {
     validateDate() {
-      if (!this.selectedDate || !this.selectedTime) {
+      if (!this.selectedDate || !this.wfhtime) {
         this.invalidDateMessage = 'Please select both a date and time.';
         return;
       }
+      (this.selectedTime == this.wfhtime) == 'AM' ? '09:00' : '14:00';
 
       const selectedDateObj = new Date(
         `${this.selectedDate}T${this.selectedTime}`,
@@ -129,11 +103,10 @@ export default {
     },
 
     handleSubmit() {
-      const combinedDateTime = `${this.selectedDate} ${this.selectedTime}:00`; // Combine date and time
+      // const combinedDateTime = `${this.selectedDate} ${this.selectedTime}:00`; // Combine date and time
       const payload = {
-        date: combinedDateTime, // Format: 'YYYY-MM-DD HH:MM:SS'
-        type: this.wfhType,
-        frequency: this.wfhType === 'regular' ? this.frequency : null,
+        date: this.selectedDate, // Format: 'YYYY-MM-DD HH:MM:SS'
+        time: this.wfhtime,
       };
       this.$emit('submitRequest', payload);
     },

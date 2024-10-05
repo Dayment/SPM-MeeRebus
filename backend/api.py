@@ -257,38 +257,34 @@ def create_WFH_request():
         data = request.json
         staff_id = data.get('staff_id')
         wfh_date = data.get('date')  # Expecting date and time in the format "YYYY-MM-DD HH:MM:SS"
-        wfh_type = data.get('type')  # 'regular' or 'ad-hoc'
-        frequency = data.get('frequency', None)  # Optional for regular WFH
+        wfh_time = data.get('time') 
         
         # Ensure that the staff_id and date are provided
-        if not staff_id or not wfh_date or not wfh_type:
-            return jsonify({"error": "Missing required fields: staff_id, date, or type."}), 400
-
-        # Convert the date to a datetime object for validation
-        try:
-            wfh_date_obj = datetime.strptime(wfh_date, "%Y-%m-%d %H:%M:%S")  # Parse full timestamp
-        except ValueError:
-            return jsonify({"error": "Invalid date format. Use 'YYYY-MM-DD HH:MM:SS'."}), 400
+        if not staff_id or not wfh_date or not wfh_time:
+            return jsonify({"error": "Missing required fields: staff_id, date, or time."}), 400
+        timestamp_hour = ""
+        if wfh_time == 'AM' or  wfh_time=="Full day":
+            timestamp_hour = "09:00"
+        else:
+            timestamp_hour = "14:00"
         
-        # Check if the WFH date is valid (not in the past or blocked)
-        blocked_days = ['2024-12-25 00:00:00', '2024-01-01 00:00:00']  # Example blocked days
+        #implement blocked days
+        blocked_days = ['2024-12-25 00:00:00', '2024-01-01 00:00:00'] 
         
-        # Check if the date is in the past
+        
         today = datetime.now()
         if wfh_date_obj < today:
             return jsonify({"error": "The selected date is in the past."}), 400
         
-        # Check if the selected date is blocked (holiday, office closure, etc.)
         if wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S') in blocked_days:
             return jsonify({"error": "The selected day is blocked off by HR or management."}), 400
 
-        # Insert the WFH request into the database (convert wfh_date_obj back to string)
         result = supabase.table('arrangement').insert({
             "staff_id": staff_id,
-            "date": wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S'),  # Convert datetime to string with time
-            "type": wfh_type,
+            "date": wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S'),  
+            "type": wfh_time,
             "frequency": frequency,
-            "status": 0  # 0 = Pending Approval
+            "status": 0  
         }).execute()
 
         # Check for successful insertion
