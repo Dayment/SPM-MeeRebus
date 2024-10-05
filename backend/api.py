@@ -253,24 +253,33 @@ def get_approved_arrangements():
 @app.route('/arrangement/submit', methods=['POST'])
 def create_WFH_request():
     try:
-        # Parse the incoming request data
         data = request.json
         staff_id = data.get('staff_id')
-        wfh_date = data.get('date')  # Expecting date and time in the format "YYYY-MM-DD HH:MM:SS"
+        wfh_date = data.get('date') 
         wfh_time = data.get('time') 
+        reason = data.get('reason')
+        requestType = data.get('requestType')
         
-        # Ensure that the staff_id and date are provided
         if not staff_id or not wfh_date or not wfh_time:
             return jsonify({"error": "Missing required fields: staff_id, date, or time."}), 400
         timestamp_hour = ""
-        if wfh_time == 'AM' or  wfh_time=="Full day":
+        frequency = 0
+        if wfh_time == 'AM':
             timestamp_hour = "09:00"
+            frequency=1
+        elif wfh_time=="Full Day":
+            timestamp_hour = "09:00"
+            frequency=3
         else:
             timestamp_hour = "14:00"
+            frequency = 2
         
         #implement blocked days
         blocked_days = ['2024-12-25 00:00:00', '2024-01-01 00:00:00'] 
-        
+        print(wfh_date,timestamp_hour)
+        wfh_date_obj = datetime.strptime(f"{wfh_date} {timestamp_hour}:00", "%Y-%m-%d %H:%M:%S")
+        print(type(wfh_date_obj))
+
         
         today = datetime.now()
         if wfh_date_obj < today:
@@ -278,23 +287,35 @@ def create_WFH_request():
         
         if wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S') in blocked_days:
             return jsonify({"error": "The selected day is blocked off by HR or management."}), 400
+        
+        # get employee reporting manager
+        employee_data_res = supabase.table('employee').select('reporting_manager').eq('staff_id', staff_id).single().execute()
+        print(employee_data_res,"ress")
+        if employee_data_res.data:
+            reporting_manager = employee_data_res.data['reporting_manager']
+        else:
+            reporting_manager = None
+
 
         result = supabase.table('arrangement').insert({
             "staff_id": staff_id,
-            "date": wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S'),  
-            "type": wfh_time,
-            "frequency": frequency,
-            "status": 0  
-        }).execute()
+            "reporting_manager": reporting_manager,  
 
-        # Check for successful insertion
-        if result.status_code == 201:
+            # "type": requestType,
+            "time": frequency,
+            "date": wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S'),  
+
+            "status": 0, 
+            "reason_staff":reason,
+        }).execute()
+        print(result,"resultaa")
+
+        if result:
             return jsonify({"message": "WFH request submitted successfully and is now pending approval."}), 201
         else:
             return jsonify({"error": "Failed to create WFH request."}), 500
 
     except Exception as e:
-        # Catch any errors and return a server error response
         return jsonify({"error": str(e)}), 500
 
     
