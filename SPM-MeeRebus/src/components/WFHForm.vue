@@ -3,9 +3,9 @@
     <div class="form-group">
       <label for="wfh-time">WFH time:</label>
       <select v-model="wfhtime" id="wfh-time" class="form-control" required>
-        <option value="1">AM</option>
-        <option value="2">PM</option>
-        <option value="3">All Day</option>
+        <option value="AM">AM</option>
+        <option value="PM">PM</option>
+        <option value="Full Day">Full Day</option>
       </select>
     </div>
 
@@ -19,32 +19,53 @@
         class="form-control"
         :min="minDate"
         :max="maxDate"
-        @change="validateDate"
         required
       />
     </div>
 
-    <div v-if="invalidDateMessage" class="alert alert-danger">
-      {{ invalidDateMessage }}
+    <!-- Reason Input -->
+    <div class="form-group">
+      <label for="reason">Reason for WFH:</label>
+      <input
+        type="text"
+        id="reason"
+        v-model="reason"
+        class="form-control"
+        placeholder="Enter the reason for WFH"
+        required
+      />
+    </div>
+
+    <!-- Request Type Dropdown -->
+    <div class="form-group">
+      <label for="request-type">Request Type:</label>
+      <select
+        v-model="requestType"
+        id="request-type"
+        class="form-control"
+        required
+      >
+        <option value="Adhoc">Adhoc</option>
+        <option value="Recurring">Recurring</option>
+      </select>
+    </div>
+
+    <div v-if="invalidMessage" class="alert alert-danger">
+      {{ invalidMessage }}
     </div>
 
     <!-- Review Section -->
     <div
       class="review-section"
-      v-if="selectedDate && selectedTime && !invalidDateMessage"
+      v-if="selectedDate && wfhtime && reason && requestType && !invalidMessage"
     >
       <h3>Review Your Selection</h3>
       <p>
         <strong>Selected WFH Date and Time:</strong> {{ selectedDate }}
-        {{ selectedTime }}
+        {{ wfhtime }}
       </p>
-      <p>
-        <strong>time:</strong>
-        {{ wfhtime === 'AM' ? 'PM' : 'Full day' }}
-      </p>
-      <p v-if="wfhtime === 'regular'">
-        <strong>Frequency:</strong> {{ frequency }}
-      </p>
+      <p><strong>Reason:</strong> {{ reason }}</p>
+      <p><strong>Request Type:</strong> {{ requestType }}</p>
     </div>
 
     <button type="submit" class="btn btn-primary">Submit WFH Request</button>
@@ -71,42 +92,52 @@ export default {
   data() {
     return {
       wfhtime: '',
-
       selectedDate: '',
-      invalidDateMessage: '',
+      invalidMessage: '',
+      reason: '',
+      requestType: '',
     };
   },
-  methods: {
-    validateDate() {
-      if (!this.selectedDate || !this.wfhtime) {
-        this.invalidDateMessage = 'Please select both a date and time.';
-        return;
+  computed: {
+    invalidMessage() {
+      if (
+        !this.selectedDate ||
+        !this.wfhtime ||
+        !this.reason ||
+        !this.requestType
+      ) {
+        return 'Please complete all fields.';
       }
-      (this.selectedTime == this.wfhtime) == 'AM' ? '09:00' : '14:00';
 
       const selectedDateObj = new Date(
-        `${this.selectedDate}T${this.selectedTime}`,
+        `${this.selectedDate}T${this.wfhtime === 'AM' ? '09:00' : '14:00'}`,
       );
       const today = new Date();
       const oneYearFromNow = new Date();
       oneYearFromNow.setFullYear(today.getFullYear() + 1);
 
       if (selectedDateObj < today || selectedDateObj > oneYearFromNow) {
-        this.invalidDateMessage =
-          'Invalid WFH date. Please select a valid date.';
-      } else if (this.blockedDays.includes(this.selectedDate)) {
-        this.invalidDateMessage =
-          'This day is blocked. Please select another date.';
-      } else {
-        this.invalidDateMessage = '';
+        return 'Invalid WFH date. Please select a valid date.';
       }
+
+      if (this.blockedDays.includes(this.selectedDate)) {
+        return 'This day is blocked. Please select another date.';
+      }
+
+      return ''; 
     },
 
+    isFormValid() {
+      return !this.invalidMessage;
+    },
+  },
+  methods: {
     handleSubmit() {
-      // const combinedDateTime = `${this.selectedDate} ${this.selectedTime}:00`; // Combine date and time
       const payload = {
-        date: this.selectedDate, // Format: 'YYYY-MM-DD HH:MM:SS'
-        time: this.wfhtime,
+        date: this.selectedDate,
+        time: this.wfhtime, // AM, PM or Full Day
+        reason: this.reason,
+        requestType: this.requestType, // ad-hoc or recurring
       };
       this.$emit('submitRequest', payload);
     },

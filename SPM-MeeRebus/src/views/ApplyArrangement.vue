@@ -1,28 +1,26 @@
 <template>
-    <div class="apply-arrangement">
-      <h2>Apply for WFH Arrangement</h2>
-      
-      <!-- Ad-Hoc Requests Info -->
-      <RequestInfo :remainingRequests="remainingAdHocRequests" />
-  
-      <!-- WFH Request Form -->
+  <div class="apply-arrangement">
+    <h2>Apply for WFH Arrangement</h2><br>
 
-      <WFHForm
-        :blockedDays="blockedDays"
-        :minDate="minDate"
-        :maxDate="maxDate"
-        @submitRequest="submitWFHRequest"
-      />
-    </div>
-  </template>
-  
-  <script>
-  import { ref, onMounted } from 'vue';
-  import RequestInfo from '../components/RequestInfo.vue';
-  import WFHForm from '../components/WFHForm.vue';
-  import { createWFHRequest } from '@/api/api';
-  
-  export default {
+    <!-- Ad-Hoc Requests Info -->
+    <!-- <RequestInfo :remainingRequests="remainingAdHocRequests" /> --> 
+
+    <WFHForm
+      :blockedDays="blockedDays"
+      :minDate="minDate"
+      :maxDate="maxDate"
+      @submitRequest="submitWFHRequest"
+    />
+  </div>
+</template>
+
+<script>
+import { ref, onMounted } from 'vue';
+import RequestInfo from '../components/RequestInfo.vue';
+import WFHForm from '../components/WFHForm.vue';
+import { createWFHRequest } from '@/api/api';
+
+export default {
   name: 'ApplyArrangement',
   components: {
     RequestInfo,
@@ -35,7 +33,7 @@
       minDate: '',
       maxDate: '',
       blockedDays: [],
-      staff_id: localStorage.getItem('employeeId')|| null  //consider using global user context object
+      staff_id: localStorage.getItem('employeeId') || null, //consider using global user context object
     };
   },
   methods: {
@@ -55,16 +53,13 @@
     this.minDate = today.toISOString().split('T')[0];
     const oneYearFromNow = new Date(today.setFullYear(today.getFullYear() + 1));
     this.maxDate = oneYearFromNow.toISOString().split('T')[0];
-
   },
 };
+</script>
 
-  </script>
-  
-  <style scoped>
-  .apply-arrangement {
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  </style>
-  
+<style scoped>
+.apply-arrangement {
+  max-width: 600px;
+  margin: 0 auto;
+}
+</style>
