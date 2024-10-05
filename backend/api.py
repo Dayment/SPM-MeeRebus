@@ -38,7 +38,6 @@ class employee(db.Model):
 def calculate_recurring(start_date, recurrence_frequency, end_date):
     recurring_dates = []
     current_date = start_date
-    print("min in fucntion")
     while current_date <= end_date:
         recurring_dates.append(current_date)
         
@@ -312,7 +311,6 @@ def create_WFH_request():
             reporting_manager = None
 
         if requestType == "Recurring":
-            print("1 min rec")
             recurrence_frequency = data.get("recurrenceFrequency")
             recurrence_end_date = data.get("recurrenceEndDate")
 
@@ -320,10 +318,8 @@ def create_WFH_request():
                 return jsonify({"error": "For recurring request, please define frequency and end date."})
         
             recurrence_end_date_obj = datetime.strptime(f"{recurrence_end_date} 23:59:59", "%Y-%m-%d %H:%M:%S")
-            print("mtk 3")
 
             recurring_dates = calculate_recurring(wfh_date_obj, recurrence_frequency, recurrence_end_date_obj)
-            print("1 min")
             for date in recurring_dates:
                 result = supabase.table('arrangement').insert({
                 "staff_id": staff_id,
@@ -333,7 +329,6 @@ def create_WFH_request():
                 "status": 0, 
                 "reason_staff":reason,
                 }).execute()
-            print(result,"result")
         elif requestType == "Adhoc":
             result = supabase.table('arrangement').insert({
                 "staff_id": staff_id,
@@ -343,9 +338,7 @@ def create_WFH_request():
                 "status": 0, 
                 "reason_staff":reason,
                 }).execute()
-            print(result,"result")
 
-        print(result,"result")
         return jsonify({"message": "WFH request submitted successfully and is now pending approval."}), 201
         
 
