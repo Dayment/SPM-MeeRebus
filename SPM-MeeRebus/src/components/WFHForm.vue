@@ -50,6 +50,34 @@
       </select>
     </div>
 
+    <div v-if="requestType === 'Recurring'">
+      <div class="form-group">
+        <label for="recurrence-frequency">Recurrence Frequency:</label>
+        <select
+          v-model="recurrenceFrequency"
+          id="recurrence-frequency"
+          class="form-control"
+          required
+        >
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="recurrence-end-date">Recurrence End Date:</label>
+        <input
+          type="date"
+          id="recurrence-end-date"
+          v-model="recurrenceEndDate"
+          class="form-control"
+          :min="selectedDate"
+          :max="maxDate"
+          required
+        />
+      </div>
+    </div>
+
     <div v-if="invalidMessage" class="alert alert-danger">
       {{ invalidMessage }}
     </div>
@@ -62,10 +90,14 @@
       <h3>Review Your Selection</h3>
       <p>
         <strong>Selected WFH Date and Time:</strong> {{ selectedDate }}
-        {{ wfhtime }}
+        
       </p>
+      <p><strong>Timeslot:</strong> {{ wfhtime }}</p>
       <p><strong>Reason:</strong> {{ reason }}</p>
       <p><strong>Request Type:</strong> {{ requestType }}</p>
+      <p><strong>Reccurence frequency:</strong> {{ recurrenceFrequency }}</p>
+      <p><strong>Reccuring arrangement will end on:</strong> {{ recurrenceEndDate }}</p>
+
     </div>
 
     <button type="submit" class="btn btn-primary">Submit WFH Request</button>
@@ -96,6 +128,8 @@ export default {
       invalidMessage: '',
       reason: '',
       requestType: '',
+      recurrenceFrequency: '',
+      recurrenceEndDate: '',
     };
   },
   computed: {
@@ -109,20 +143,29 @@ export default {
         return 'Please complete all fields.';
       }
 
-      const selectedDateObj = new Date(
+      const date_obj = new Date(
         `${this.selectedDate}T${this.wfhtime === 'AM' ? '09:00' : '14:00'}`,
       );
       const today = new Date();
       const oneYearFromNow = new Date();
       oneYearFromNow.setFullYear(today.getFullYear() + 1);
 
-      if (selectedDateObj < today || selectedDateObj > oneYearFromNow) {
+      if (date_obj < today || date_obj > oneYearFromNow) {
         return 'Invalid WFH date. Please select a valid date.';
       }
 
       if (this.blockedDays.includes(this.selectedDate)) {
         return 'This day is blocked. Please select another date.';
       }
+      if (this.requestType === 'recurring') {
+        if (!this.recurrenceFrequency || !this.recurrenceEndDate) {
+          return 'Please complete all recurring request fields.';
+        }
+        if (new Date(this.recurrenceEndDate) < date_obj) {
+          return 'Recurrence end date must be after the start date.';
+        }
+      }
+
 
       return ''; 
     },
@@ -139,6 +182,13 @@ export default {
         reason: this.reason,
         requestType: this.requestType, // ad-hoc or recurring
       };
+
+      if (this.requestType == "Recurring"){
+        payload.recurrenceFrequency = this.recurrenceFrequency
+        payload.recurrenceEndDate = this.recurrenceEndDate
+      }
+        
+
       this.$emit('submitRequest', payload);
     },
   },
