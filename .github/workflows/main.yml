@@ -60,7 +60,7 @@ jobs:
 
       - name: Get the Vercel URL
         run: |
-          cd SPM-MeeRebus/SPM-MeeRebus 
+          cd SPM-MeeRebus 
           export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
           echo "Deployed URL: $FRONTEND_URL"
 
