@@ -48,10 +48,11 @@ jobs:
         with:
           vercel_project_id: ${{ secrets.VERCEL_PROJECT_ID }}
           branch: test-ci
-      - name: Output Preview URL
-        run: echo "Preview URL: ${{ steps.vercel_preview_url.outputs.preview_url }}"
-        id: output_url
 
+      - name: Output Preview URL
+        run: |
+          echo "Preview URL: ${{ steps.vercel_preview_url.outputs.preview_url }}"
+        id: output_url
   selenium_tests:
     needs: get_preview_url
     runs-on: ubuntu-latest
