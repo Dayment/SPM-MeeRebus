@@ -33,6 +33,19 @@ export const getAllApprovedArrangement = async () => {
     }
   };
 
+  export const createWFHRequest = async (payload) => { 
+    try {
+      console.log(payload,"payloadddad")
+      const response = await axios.post(`${API_BASE_URL}/arrangement/submit`,payload);
+     
+
+      return response.data;
+    } catch (error) {
+      console.error("Error creating WFH request:", error);
+      throw error;
+    }
+  };
+
 export const getTeamApprovedArrangement = async (empId) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/arrangement/posi/${empId}`);

@@ -39,6 +39,7 @@
                   <li class="nav-item" v-if="showCompanyNav">
                       <a class="nav-link" href="/company">Company Schedule</a>
                   </li>
+                  
                   <li class="nav-item">
                       <a class="nav-link" href="/apply">Apply For Arrangement</a>
                   </li>

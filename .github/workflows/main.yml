@@ -16,7 +16,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: '16'
 
       - name: Install frontend dependencies
         run: |
@@ -55,11 +55,20 @@ jobs:
 
       - name: Install Selenium dependencies
         run: |
-          pip install selenium
+          cd selenium-testing 
+          pip install selenium pytest
+
+      - name: Get the Vercel URL
+        run: |
+          cd SPM-MeeRebus 
+          export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
+          echo "Deployed URL: $FRONTEND_URL"
 
       - name: Run Selenium tests
         run: |
+          cd selenium-testing  
           export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
+          echo "Testing against: $FRONTEND_URL"
           python -m pytest --url "$FRONTEND_URL"
 
   deploy_to_production:
