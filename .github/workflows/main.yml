@@ -56,20 +56,18 @@ jobs:
 
       - name: Install Selenium dependencies
         run: |
-          cd selenium-testing  # Navigate to the selenium-testing folder
+          cd selenium-testing
           pip install selenium pytest
 
       - name: Get the Vercel URL
         run: |
-          cd SPM-MeeRebus  # Navigate to Vue frontend folder
-          export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
-          echo "Deployed URL: $FRONTEND_URL"
+          vercel url --token ${{ secrets.VERCEL_TOKEN }}
         id: get_vercel_url
-        continue-on-error: true  # Add this in case the URL fetch fails
+        continue-on-error: true  # Fallback in case the URL can't be fetched
 
       - name: Run Selenium tests
         run: |
-          cd selenium-testing  # Navigate to selenium-testing folder
+          cd selenium-testing
           FRONTEND_URL="${{ steps.get_vercel_url.outputs.FRONTEND_URL }}"
           echo "Testing against: $FRONTEND_URL"
           pytest test_SCRUM-8.py --url "$FRONTEND_URL"
@@ -85,6 +83,6 @@ jobs:
 
       - name: Deploy to Vercel (Production)
         run: |
-          cd SPM-MeeRebus  # Navigate to Vue frontend folder
+          cd SPM-MeeRebus
           npm install -g vercel
           vercel --prod --token ${{ secrets.VERCEL_TOKEN }}  # Deploy to production
