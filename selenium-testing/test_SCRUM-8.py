@@ -7,19 +7,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
-# argument parser to accept URL from the command line
+# Argument parser to accept URL from the command line
 parser = argparse.ArgumentParser(description='Selenium test for navigating the website.')
 parser.addoption('--url', help='URL of the site to test', required=True)
 args = parser.parse_args()
-
-'''
-This script uses a chrome webdriver that requires Chrome browser version 115 or newer
-Ensure that selenium library is installed:
-pip install selenium
-
-Run the following command: 
-python test_SCRUM-8.py
-'''
 
 # Set up the path to the ChromeDriver using the Service class
 service = Service('./chromedriver.exe')  # Path to ChromeDriver (assuming it's in the same folder)
@@ -28,7 +19,7 @@ service = Service('./chromedriver.exe')  # Path to ChromeDriver (assuming it's i
 driver = webdriver.Chrome(service=service)
 
 try:
-    # Go to the website
+    # Go to the website using the URL from the command-line argument
     driver.get(args.url)
     
     # Find the input element by id and type in the employee ID
