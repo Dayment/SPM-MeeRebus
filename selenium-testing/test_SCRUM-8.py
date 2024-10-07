@@ -7,15 +7,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-
-# Add the option to pytest to accept the --url argument
-def pytest_addoption(parser):
-    parser.addoption("--url", action="store", help="URL of the site to test")
-
-@pytest.fixture
-def url(request):
-    return request.config.getoption("--url") or os.getenv('APP_URL')
 
 @pytest.fixture
 def browser():
@@ -28,7 +19,7 @@ def browser():
     driver.quit()
 
 def test_navigation(browser, url):
-    # Go to the website using the provided URL
+
     browser.get(url)
     
     # Find the input element by id and type in the employee ID
