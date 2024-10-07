@@ -346,6 +346,29 @@ def create_WFH_request():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Set arrangement status to 3 (Cancelled)
+@app.route('/arrangement/cancel/<int:arrangement_id>', methods=['PUT'])
+def cancel_arrangement(arrangement_id):
+    try:
+        # Get the arrangement by its ID
+        arrangement_response = supabase.table('arrangement').select('*').eq('arrangement_id', arrangement_id).single().execute()
+
+        if arrangement_response.data:
+            # Update the status to 3 (Cancelled)
+            update_response = supabase.table('arrangement').update({
+                "status": 3
+            }).eq('arrangement_id', arrangement_id).execute()
+
+            if update_response.data:
+                return jsonify({"message": "Arrangement cancelled successfully."}), 200
+            else:
+                return jsonify({"error": "Failed to cancel the arrangement."}), 500
+        else:
+            return jsonify({"error": "Arrangement not found."}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
     
 
 
