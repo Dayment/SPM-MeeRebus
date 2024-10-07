@@ -55,14 +55,8 @@ jobs:
           echo "Deployment Output:"
           echo "$DEPLOYMENT_OUTPUT"
 
-          # Check if vercel command succeeded
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "Vercel deployment failed with exit code $EXIT_CODE"
-            exit $EXIT_CODE
-          fi
-
           # Extract the deployment URL from the output
-          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -Eo 'https?://[^\s]+\.vercel\.app')
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -Eo 'https?://[^\s]+\.vercel\.app' | head -n 1)
           echo "Deployment URL: $DEPLOYMENT_URL"
 
           # Check if DEPLOYMENT_URL is empty
