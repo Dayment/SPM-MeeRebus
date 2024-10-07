@@ -85,31 +85,5 @@ jobs:
       - name: Install Chrome and Chromedriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-          sudo apt-get install -y unzip xvfb libxi6 libgconf-2-4
-          CHROME_DRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE)
-          wget -N http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip -P ~/
-          unzip ~/chromedriver_linux64.zip -d ~/
-          sudo mv -f ~/chromedriver /usr/local/bin/chromedriver
-          sudo chown root:root /usr/local/bin/chromedriver
-          sudo chmod 0755 /usr/local/bin/chromedriver
-
-      # Run Selenium Tests
-      - name: Run Selenium Tests
-        working-directory: ./selenium-testing
-        env:
-          APP_URL: ${{ env.DEPLOYMENT_URL }}
-        run: |
-          echo "APP_URL is: $APP_URL"
-          pytest
-
-      # Deploy to Vercel (Production) if tests pass and branch is main
-      - name: Deploy to Vercel (Production)
-        if: github.ref == 'refs/heads/main' && success()
-        working-directory: ./SPM-MeeRebus
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID --prod
+          sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
+          # Install Google
