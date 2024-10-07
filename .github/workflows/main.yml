@@ -36,20 +36,33 @@ jobs:
         working-directory: ./SPM-MeeRebus
         run: npm run build
 
-      # Deploy to Vercel as a Preview Deployment
+      # Install Vercel CLI and jq
+      - name: Install Vercel CLI and jq
+        run: |
+          npm install -g vercel
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      # Deploy to Vercel (Preview)
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
-        uses: vercel/action@v1
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          working-directory: ./SPM-MeeRebus
-
-      # Debug Vercel Outputs
-      - name: Debug Vercel Outputs
+        working-directory: ./SPM-MeeRebus
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          echo "Vercel Deployment URL: ${{ steps.vercel_deploy.outputs.preview-url }}"
-          echo "Vercel Deployment URL (alternative): ${{ steps.vercel_deploy.outputs.url }}"
+          # Deploy to Vercel and get JSON output
+          DEPLOYMENT_JSON=$(vercel --token $VERCEL_TOKEN --confirm --scope $VERCEL_ORG_ID --prod=false --no-clipboard --output=json)
+          echo "Deployment JSON:"
+          echo "$DEPLOYMENT_JSON"
+          
+          # Extract the deployment URL from the JSON output
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_JSON" | jq -r '.url')
+          echo "Deployment URL: $DEPLOYMENT_URL"
+          
+          # Set the deployment URL as an environment variable for subsequent steps
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
 
       # Set up Python 3.8
       - name: Set up Python 3.8
@@ -81,7 +94,7 @@ jobs:
       - name: Run Selenium Tests
         working-directory: ./selenium-testing
         env:
-          APP_URL: ${{ steps.vercel_deploy.outputs.preview-url }}
+          APP_URL: ${{ env.DEPLOYMENT_URL }}
         run: |
           echo "APP_URL is: $APP_URL"
           pytest
@@ -89,9 +102,10 @@ jobs:
       # Deploy to Vercel (Production) if tests pass and branch is main
       - name: Deploy to Vercel (Production)
         if: github.ref == 'refs/heads/main' && success()
-        uses: vercel/action@v1
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          working-directory: ./SPM-MeeRebus
-          prod: true
+        working-directory: ./SPM-MeeRebus
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel --token $VERCEL_TOKEN --confirm --scope $VERCEL_ORG_ID --prod --no-clipboard
