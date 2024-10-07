@@ -5,6 +5,7 @@ on:
     branches: [ main, test-ci ]
   pull_request:
     branches: [ main, test-ci ]
+
 permissions:
   contents: write
   deployments: write
@@ -16,24 +17,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
-
-      # Cache Node.js dependencies
-      - name: Cache Node.js dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       # Set up Node.js environment
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'  # Adjust if your project requires a different version
+          node-version: '16'
 
       # Install frontend dependencies
       - name: Install frontend dependencies
@@ -48,26 +39,23 @@ jobs:
       # Deploy to Vercel as a Preview Deployment
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
-        uses: amondnet/vercel-action@v20
+        uses: vercel/vercel-action@v1
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          working-directory: ./SPM-MeeRebus
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: ./SPM-MeeRebus
 
-      # Set up Python environment
+      # Debug Vercel Outputs
+      - name: Debug Vercel Outputs
+        run: |
+          echo "Vercel Deployment URL: ${{ steps.vercel_deploy.outputs.preview-url }}"
+          echo "Vercel Deployment URL (alternative): ${{ steps.vercel_deploy.outputs.url }}"
+
+      # Set up Python 3.8
       - name: Set up Python 3.8
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
-
-      # Cache Python dependencies
-      - name: Cache Python dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/selenium-testing/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       # Install Python dependencies
       - name: Install Python dependencies
@@ -93,17 +81,17 @@ jobs:
       - name: Run Selenium Tests
         working-directory: ./selenium-testing
         env:
-          APP_URL: ${{ steps.vercel_deploy.outputs.url }}
+          APP_URL: ${{ steps.vercel_deploy.outputs.preview-url }}
         run: |
           echo "APP_URL is: $APP_URL"
-          pytest --url $APP_URL
+          pytest
 
       # Deploy to Vercel (Production) if tests pass and branch is main
       - name: Deploy to Vercel (Production)
         if: github.ref == 'refs/heads/main' && success()
-        uses: amondnet/vercel-action@v20
+        uses: vercel/vercel-action@v1
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-args: "--prod --confirm"
-          working-directory: ./SPM-MeeRebus
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: ./SPM-MeeRebus
+          prod: true
