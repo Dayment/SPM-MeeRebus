@@ -49,7 +49,8 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
       - name: Output the preview URL
-        run: echo "Preview URL: ${{ steps.vercel_preview_url.outputs.preview_url }}"
+        run: |
+          echo "Preview URL: ${{ steps.vercel_preview_url.outputs.preview_url }}"
         id: output_url
 
   selenium_tests:
