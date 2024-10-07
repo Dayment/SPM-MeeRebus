@@ -59,6 +59,11 @@ jobs:
           cd selenium-testing 
           pip install selenium pytest
 
+      - name: List Directories for Debugging
+        run: |
+          ls -al  # List the contents of the root directory
+          cd SPM-MeeRebus  # Try navigating into the top-level directory
+          ls -al  # List contents of SPM-MeeRebus
       
       - name: Get the Vercel URL
         run: |
@@ -66,12 +71,6 @@ jobs:
           export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
           echo "Deployed URL: $FRONTEND_URL"
 
-      - name: List Directories for Debugging
-        run: |
-          ls -al  # List the contents of the root directory
-          cd SPM-MeeRebus  # Try navigating into the top-level directory
-          ls -al  # List contents of SPM-MeeRebus
-          
       - name: Run Selenium tests
         run: |
           cd selenium-testing  
