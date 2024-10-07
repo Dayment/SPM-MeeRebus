@@ -193,7 +193,8 @@ def get_arrangements_by_department(staff_id):
                     "arrangement_id": arrangement['arrangement_id'],
                     "date": arrangement['date'],
                     "employee": staff_info,
-                    "reason": arrangement.get('reason'),
+                    "reason_staff": arrangement.get('reason_staff'),
+                    "reason_man": arrangement.get('reason_man'),
                     "reporting_manager": arrangement['reporting_manager'],
                     "staff_id": arrangement['staff_id'],
                     "status": arrangement['status'],
@@ -217,7 +218,7 @@ def get_approved_arrangements():
     
 # Get all WFH arrangemetns with employee obj
 @app.route('/arrangement/obj', methods=['GET'])
-def get_approved_arrangements():
+def get_approved_arrangements_obj():
     response = supabase.table('arrangement').select('*').execute()
 
     staff_ids = [staff['staff_id'] for staff in response.data]
