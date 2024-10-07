@@ -36,14 +36,11 @@ jobs:
         working-directory: ./SPM-MeeRebus
         run: npm run build
 
-      # Install Vercel CLI and jq
-      - name: Install Vercel CLI and jq
-        run: |
-          npm install -g vercel
-          sudo apt-get update
-          sudo apt-get install -y jq
+      # Install Vercel CLI
+      - name: Install Vercel CLI
+        run: npm install -g vercel
 
-      # Deploy to Vercel (Preview)
+      # Deploy to Vercel (Preview) and capture DEPLOYMENT_URL
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
         working-directory: ./SPM-MeeRebus
@@ -52,15 +49,21 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          # Deploy to Vercel and get JSON output
-          DEPLOYMENT_JSON=$(vercel --token $VERCEL_TOKEN --confirm --scope $VERCEL_ORG_ID --prod=false --no-clipboard --output=json)
-          echo "Deployment JSON:"
-          echo "$DEPLOYMENT_JSON"
-          
-          # Extract the deployment URL from the JSON output
-          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_JSON" | jq -r '.url')
+          # Deploy to Vercel and capture output
+          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --confirm --scope $VERCEL_ORG_ID --prod=false --no-clipboard)
+          echo "Deployment Output:"
+          echo "$DEPLOYMENT_OUTPUT"
+
+          # Extract the deployment URL from the output
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -Eo 'https?://[^\s]+\.vercel\.app')
           echo "Deployment URL: $DEPLOYMENT_URL"
-          
+
+          # Check if DEPLOYMENT_URL is empty
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "Failed to obtain deployment URL."
+            exit 1
+          fi
+
           # Set the deployment URL as an environment variable for subsequent steps
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
 
