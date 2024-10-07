@@ -39,7 +39,7 @@ jobs:
       # Deploy to Vercel as a Preview Deployment
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
-        uses: vercel/vercel-action@v1
+        uses: vercel/action@v1
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -89,7 +89,7 @@ jobs:
       # Deploy to Vercel (Production) if tests pass and branch is main
       - name: Deploy to Vercel (Production)
         if: github.ref == 'refs/heads/main' && success()
-        uses: vercel/vercel-action@v1
+        uses: vercel/action@v1
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
