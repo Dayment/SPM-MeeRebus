@@ -1,87 +1,89 @@
-name: CI/CD for Vue Frontend
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main, test-ci ]
+  pull_request:
+    branches: [ main, test-ci ]
+
+permissions:
+  contents: write
+  deployments: write
+  pull-requests: write
+  statuses: write
 
 jobs:
-  deploy_to_staging:
+  build-test-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Install Node.js
-        uses: actions/setup-node@v2
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: '16'
 
+      # Install frontend dependencies
       - name: Install frontend dependencies
+        working-directory: ./SPM-MeeRebus
+        run: npm install
+
+      # Build the Vue app
+      - name: Build the Vue app
+        working-directory: ./SPM-MeeRebus
+        run: npm run build
+
+      # Install Vercel CLI
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      # Deploy to Vercel (Preview) and capture DEPLOYMENT_URL
+      - name: Deploy to Vercel (Preview)
+        id: vercel_deploy
+        working-directory: ./SPM-MeeRebus
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          cd SPM-MeeRebus  # Navigate to your Vue project
-          npm install
+          # Deploy to Vercel and capture output (stdout and stderr)
+          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID 2>&1)
+          EXIT_CODE=$?
+          echo "Deployment Output:"
+          echo "$DEPLOYMENT_OUTPUT"
 
-      - name: Build frontend
-        run: |
-          cd SPM-MeeRebus
-          npm run build
+          # Extract the deployment URL from the 'Preview:' line
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep '^Preview:' | awk '{ print $2 }')
+          echo "Deployment URL: $DEPLOYMENT_URL"
 
-      - name: Deploy to Vercel (Staging)
-        run: |
-          cd SPM-MeeRebus
-          npm install -g vercel
-          vercel --token ${{ secrets.VERCEL_TOKEN }}  # Deploy to staging
-        id: deploy_staging
+          # Check if DEPLOYMENT_URL is empty
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "Failed to obtain deployment URL."
+            exit 1
+          fi
 
-  selenium_tests:
-    needs: deploy_to_staging
-    runs-on: ubuntu-latest
-    services:
-      selenium:
-        image: selenium/standalone-chrome:latest
-        ports:
-          - 4444:4444
+          # Set the deployment URL as an environment variable for subsequent steps
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
+      # Set up Python 3.8
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: '3.8'
 
-      - name: Install Selenium dependencies
+      # Install Python dependencies
+      - name: Install Python dependencies
+        working-directory: ./selenium-testing
         run: |
-          cd selenium-testing 
-          pip install selenium pytest
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Get the Vercel URL
+      # Install Chrome and Chromedriver for Selenium
+      - name: Install Chrome and Chromedriver
         run: |
-          cd SPM-MeeRebus 
-          export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
-          echo "Deployed URL: $FRONTEND_URL"
-
-      - name: Run Selenium tests
-        run: |
-          cd selenium-testing  
-          export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
-          echo "Testing against: $FRONTEND_URL"
-          python -m pytest --url "$FRONTEND_URL"
-
-  deploy_to_production:
-    needs: selenium_tests
-    if: success()  # Only deploy to production if tests pass
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Deploy to Vercel (Production)
-        run: |
-          cd SPM-MeeRebus
-          npm install -g vercel
-          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}  # Deploy to production
+          sudo apt-get update
+          sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
+          # Install Google
