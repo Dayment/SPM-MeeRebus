@@ -36,6 +36,13 @@ jobs:
           vercel --token ${{ secrets.VERCEL_TOKEN }}  # Deploy to staging
         id: deploy_staging
 
+      - name: Get the Vercel URL
+        run: |
+          cd SPM-MeeRebus
+          export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
+          echo "Deployed URL: $FRONTEND_URL"
+        id: get_vercel_url
+
   selenium_tests:
     needs: deploy_to_staging
     runs-on: ubuntu-latest
@@ -56,25 +63,13 @@ jobs:
 
       - name: Install Selenium dependencies
         run: |
-          cd selenium-testing 
+          cd selenium-testing
           pip install selenium pytest
-
-      - name: List Directories for Debugging
-        run: |
-          ls -al  # List the contents of the root directory
-          cd SPM-MeeRebus  # Try navigating into the top-level directory
-          ls -al  # List contents of SPM-MeeRebus
-      
-      - name: Get the Vercel URL
-        run: |
-          cd SPM-MeeRebus  # Navigate to the correct Vue frontend directory
-          export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
-          echo "Deployed URL: $FRONTEND_URL"
 
       - name: Run Selenium tests
         run: |
           cd selenium-testing  
-          export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
+          FRONTEND_URL="${{ steps.get_vercel_url.outputs.FRONTEND_URL }}"
           echo "Testing against: $FRONTEND_URL"
           python -m pytest --url "$FRONTEND_URL"
 
