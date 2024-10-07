@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'; 
 import { useRouter } from 'vue-router';
-import { getAllEmployee, getTeamApprovedArrangement, getDeptApprovedArrangement2 } from '../api/api';
+import { getAllEmployee, getDeptApprovedArrangement2 } from '../api/api';
 import Calendar from '../components/Calendar.vue';  
 import axios from 'axios';
 
@@ -30,8 +30,8 @@ onMounted(async () => {
   }
 });
 
-const teams = ref(['Sales', 'Consultancy', 'System Solutioning', 'Engineering', 'HR', 'Finance', 'IT']);
-const selectedTeam = ref('HR');
+const teams = ref(['All', 'Sales', 'Consultancy', 'System Solutioning', 'Engineering', 'HR', 'Finance', 'IT']);
+const selectedTeam = ref('All');
 const syssTeams = ref(['Developers', 'Support Team']);
 const selectedsyssTeam = ref('Developers');
 const engTeams = ref(['Senior Engineers', 'Junior Engineers', 'Call Centre', 'Operation Planning Team']);
@@ -41,6 +41,10 @@ const selectedhrTeam = ref('HR Team');
 
 const selectTeam = (team) => {
   selectedTeam.value = team;
+  if (team === 'All') {
+    // No need to set a sub-team for 'All'
+    return;
+  }
   if (team !== 'System Solutioning') {
     selectedsyssTeam.value = 'Developers'; // Reset sys team selection when not IT
   }
@@ -77,7 +81,9 @@ const filteredWFHDetails = computed(() => {
       (!endDate.value || wfhDate <= new Date(endDate.value));
 
     const matchesTeamAndSubTeam = () => {
-      if (selectedTeam.value === 'System Solutioning') {
+      if (selectedTeam.value === 'All') {
+        return true; // Show all arrangements when 'All' is selected
+      } else if (selectedTeam.value === 'System Solutioning') {
         return dept.includes('system solutioning') && position.includes(selectedsyssTeam.value.toLowerCase());
       } else if (selectedTeam.value === 'Engineering') {
         return dept.includes('engineering') && position.includes(selectedengTeam.value.toLowerCase());
