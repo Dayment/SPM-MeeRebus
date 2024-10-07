@@ -50,9 +50,16 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           # Deploy to Vercel and capture output
-          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --confirm --scope $VERCEL_ORG_ID --prod=false --no-clipboard)
+          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID --prod=false)
+          EXIT_CODE=$?
           echo "Deployment Output:"
           echo "$DEPLOYMENT_OUTPUT"
+
+          # Check if vercel command succeeded
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "Vercel deployment failed with exit code $EXIT_CODE"
+            exit $EXIT_CODE
+          fi
 
           # Extract the deployment URL from the output
           DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -Eo 'https?://[^\s]+\.vercel\.app')
@@ -111,4 +118,4 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          vercel --token $VERCEL_TOKEN --confirm --scope $VERCEL_ORG_ID --prod --no-clipboard
+          vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID --prod
