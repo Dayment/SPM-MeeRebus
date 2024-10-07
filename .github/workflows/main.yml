@@ -36,6 +36,27 @@ jobs:
           vercel --token ${{ secrets.VERCEL_TOKEN }}  # Deploy to staging
         id: deploy_staging
 
+      - name: Get the Vercel Preview URL
+        uses: zentered/vercel-preview-url@v1.1.9
+        if: github.event_name != 'pull_request'
+        id: vercel_preview_url
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_REF: "main"
+          GITHUB_REPOSITORY: "your-repo/your-project"
+        with:
+          vercel_project_id: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Wait for Vercel Deployment Readiness
+        uses: UnlyEd/github-action-await-vercel@v1
+        id: await-vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        with:
+          deployment-url: ${{ steps.vercel_preview_url.outputs.preview_url }}
+          timeout: 420
+          poll-interval: 15
+
   selenium_tests:
     needs: deploy_to_staging
     runs-on: ubuntu-latest
@@ -59,18 +80,14 @@ jobs:
           cd selenium-testing
           pip install selenium pytest
 
-      - name: Get the Vercel URL
+      - name: Get Vercel URL from previous step
         run: |
-          vercel url --token ${{ secrets.VERCEL_TOKEN }}
-        id: get_vercel_url
-        continue-on-error: true  # Fallback in case the URL can't be fetched
+          echo "Using Vercel Preview URL: ${{ steps.vercel_preview_url.outputs.preview_url }}"
 
       - name: Run Selenium tests
         run: |
           cd selenium-testing
-          FRONTEND_URL="${{ steps.get_vercel_url.outputs.FRONTEND_URL }}"
-          echo "Testing against: $FRONTEND_URL"
-          pytest test_SCRUM-8.py --url "$FRONTEND_URL"
+          pytest selenium-test.py --url "${{ steps.vercel_preview_url.outputs.preview_url }}"
 
   deploy_to_production:
     needs: selenium_tests
