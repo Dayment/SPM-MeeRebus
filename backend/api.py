@@ -57,6 +57,106 @@ def get_all_employees():
     else:
         return jsonify({"error": "No employees found"}), 404
 
+# Get all unique departments
+@app.route('/departments', methods=['GET'])
+def get_unique_departments():
+    try:
+        # Query Supabase to get distinct department names
+        response = supabase.table('employee').select('dept').execute()
+
+        if response.data:
+            # Extract unique department names
+            departments = {employee['dept'] for employee in response.data if employee.get('dept')}  # Use a set for uniqueness
+            return jsonify(list(departments)), 200
+        else:
+            return jsonify({"error": "No departments found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    
+@app.route('/event-dates', methods=['GET'])
+def get_unique_event_dates():
+    try:
+        # Query Supabase to get distinct event dates and their descriptions
+        response = supabase.table('events').select('date, description').execute()
+
+        if response.data:
+            # Create a dictionary mapping event date to event description
+            event_dates_dict = {event['date']: event['description'] for event in response.data if event.get('date') and event.get('description')}
+            return jsonify(event_dates_dict), 200
+        else:
+            return jsonify({"error": "No event dates found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/all-events-datetimes', methods=['GET'])
+def get_all_event_datetimes():
+    try:
+        # Query Supabase to get the event dates (assuming the column name is 'date')
+        response = supabase.table('events').select('date').execute()
+
+        # Debugging: Print the response to verify what is being returned
+        print(response.data)
+
+        if response.data:
+            # Extract all event dates, ensuring we only include non-null dates
+            event_dates = [event.get('date') for event in response.data if event.get('date')]
+            
+            # If the event_dates list is populated, return it, otherwise return a "not found" message
+            if event_dates:
+                return jsonify(event_dates), 200
+            else:
+                return jsonify({"error": "No valid event dates found"}), 404
+        else:
+            return jsonify({"error": "No events found"}), 404
+    except Exception as e:
+        # Log the error for further debugging
+        print(f"Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/create-event', methods=['POST'])
+def create_event():
+    try:
+        # Parse the JSON data from the request body
+        event_data = request.json
+
+        # Extract the 'date' field from the event data
+        date = event_data.get('date')
+
+        # Validate the input (check if 'date' is provided)
+        if not date:
+            return jsonify({"error": "Missing date"}), 400
+
+        # Debugging logs for incoming data
+        print(f"Received event data: {event_data}")
+
+        # Ensure the Supabase client is initialized correctly
+        if 'supabase' not in globals():
+            raise Exception("Supabase client not initialized")
+
+        # Insert the event into the database using Supabase
+        response = supabase.table('events').insert({
+            'date': date,
+                # No need to include 'event_id' if it auto-generates
+        }).execute()
+
+        # Log the response from Supabase for debugging
+        print(f"Supabase insert response: {response}")
+
+        # Check if the response contains the inserted data
+        if response.data:  # Access data directly from the response object
+            return jsonify({"success": True}), 200
+        else:
+            # Log the error details from the response
+            error_message = response.error or 'Unknown error'  # Use the `error` attribute
+            print(f"Error inserting event: {error_message}")
+            return jsonify({"success": False, "error": error_message}), 500
+
+    except Exception as e:
+        # Log the error for debugging purposes
+        print(f"Error: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+             
 class arrangement(db.Model):
     __tablename__ = 'arrangement'  
     arrangement_id = db.Column(db.Integer, primary_key=True) # Auto incrementing, no need to manually key in
