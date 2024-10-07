@@ -30,6 +30,9 @@
                   <li class="nav-item">
                       <a class="nav-link" href="/apply">Apply For Arrangement</a>
                   </li>
+                  <li class="nav-item" v-if="showEvents">
+                      <a class="nav-link" href="/events">Apply For Events</a>
+                  </li>
               </ul>
           </div>
       </div>
@@ -47,6 +50,7 @@ export default {
       return {
           showDepartmentNav: eventBus.isDir || isDir,
           showCompanyNav: eventBus.isHR || isHR,
+          showEvents: eventBus.isHR || isHR,
       };
   },
   mounted() {
@@ -66,6 +70,7 @@ export default {
           const isHR = localStorage.getItem('isHR') == 'true';
           this.showDepartmentNav = eventBus.isDir || isDir;
           this.showCompanyNav = eventBus.isHR || isHR;
+          this.showEvents = eventBus.isHR || isHR
       }
   },
   setup() {
