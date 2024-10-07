@@ -50,7 +50,7 @@ def calculate_recurring(start_date, recurrence_frequency, end_date):
 
     return recurring_dates
 
-
+#note
 # Get specific employee
 @app.route('/employee/<int:staff_id>', methods=['GET'])
 def get_employee(staff_id):
