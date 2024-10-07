@@ -1,98 +1,103 @@
-name: CI/CD for Vue Frontend
+name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - main
-      - test-ci
+    branches: [ main, test-ci ]
+  pull_request:
+    branches: [ main, test-ci ]
 
 jobs:
-  deploy_to_staging:
+  build-test-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Install Node.js
-        uses: actions/setup-node@v2
+      # Cache Node.js dependencies
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v3
         with:
-          node-version: '16'
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Adjust if your project requires a different version
+
+      # Install frontend dependencies
       - name: Install frontend dependencies
-        run: |
-          cd SPM-MeeRebus  # Navigate to your Vue project
-          npm install
+        working-directory: ./SPM-MeeRebus
+        run: npm install
 
-      - name: Build frontend
-        run: |
-          cd SPM-MeeRebus
-          npm run build
+      # Build the Vue app
+      - name: Build the Vue app
+        working-directory: ./SPM-MeeRebus
+        run: npm run build
 
-      - name: Deploy to Vercel (Staging)
-        run: |
-          cd SPM-MeeRebus
-          npm install -g vercel
-          vercel --token ${{ secrets.VERCEL_TOKEN }}  # Deploy to staging
-        id: deploy_staging
-
-  fetch_preview_url:
-    needs: deploy_to_staging
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Fetch Vercel Preview URL
-        uses: zentered/vercel-preview-url@v1.1.9
+      # Deploy to Vercel as a Preview Deployment
+      - name: Deploy to Vercel (Preview)
+        id: vercel_deploy
+        uses: amondnet/vercel-action@v20
         with:
-          vercel_project_id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          working-directory: ./SPM-MeeRebus
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Set up Python environment
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      # Cache Python dependencies
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/selenium-testing/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Install Python dependencies
+      - name: Install Python dependencies
+        working-directory: ./selenium-testing
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Install Chrome and Chromedriver for Selenium
+      - name: Install Chrome and Chromedriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+          sudo apt-get install -y unzip xvfb libxi6 libgconf-2-4
+          CHROME_DRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE)
+          wget -N http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip -P ~/
+          unzip ~/chromedriver_linux64.zip -d ~/
+          sudo mv -f ~/chromedriver /usr/local/bin/chromedriver
+          sudo chown root:root /usr/local/bin/chromedriver
+          sudo chmod 0755 /usr/local/bin/chromedriver
+
+      # Run Selenium Tests
+      - name: Run Selenium Tests
+        working-directory: ./selenium-testing
         env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-
-      - name: Output the preview URL
+          APP_URL: ${{ steps.vercel_deploy.outputs.url }}
         run: |
-          echo "Preview URL: ${{ steps.vercel_preview_url.outputs.preview_url }}"
-        id: output_url
+          pytest --url $APP_URL
 
-  selenium_tests:
-    needs: fetch_preview_url
-    runs-on: ubuntu-latest
-    services:
-      selenium:
-        image: selenium/standalone-chrome:latest
-        ports:
-          - 4444:4444
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-
-      - name: Install Selenium dependencies
-        run: |
-          cd selenium-testing 
-          pip install selenium pytest
-
-      - name: Run Selenium tests
-        run: |
-          cd selenium-testing  
-          echo "Testing against: ${{ steps.vercel_preview_url.outputs.preview_url }}"
-          python -m pytest --url "${{ steps.vercel_preview_url.outputs.preview_url }}"
-
-  deploy_to_production:
-    needs: selenium_tests
-    if: success()  # Only deploy to production if tests pass
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
+      # Deploy to Vercel (Production) if tests pass and branch is main
       - name: Deploy to Vercel (Production)
-        run: |
-          cd SPM-MeeRebus
-          npm install -g vercel
-          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}  # Deploy to production
+        if: github.ref == 'refs/heads/main' && success()
+        uses: amondnet/vercel-action@v20
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-args: "--prod --confirm"
+          working-directory: ./SPM-MeeRebus
+          github-token: ${{ secrets.GITHUB_TOKEN }}

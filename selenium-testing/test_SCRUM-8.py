@@ -1,11 +1,13 @@
 import pytest
 import time
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import TimeoutException
 
 # Add the option to pytest to accept the --url argument
 def pytest_addoption(parser):
@@ -13,12 +15,15 @@ def pytest_addoption(parser):
 
 @pytest.fixture
 def url(request):
-    return request.config.getoption("--url")
+    return request.config.getoption("--url") or os.getenv('APP_URL')
 
 @pytest.fixture
 def browser():
-    service = Service('./chromedriver')  # Path to ChromeDriver
-    driver = webdriver.Chrome(service=service)
+    options = Options()
+    options.add_argument('--headless')  # Run in headless mode for CI
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    driver = webdriver.Chrome(options=options)
     yield driver
     driver.quit()
 
