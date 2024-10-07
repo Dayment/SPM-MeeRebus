@@ -9,7 +9,7 @@ from selenium.common.exceptions import NoSuchElementException, TimeoutException
 
 # Argument parser to accept URL from the command line
 parser = argparse.ArgumentParser(description='Selenium test for navigating the website.')
-parser.addoption('--url', help='URL of the site to test', required=True)
+parser.add_argument('--url', help='URL of the site to test', required=True)  # Fixed to use add_argument
 args = parser.parse_args()
 
 # Set up the path to the ChromeDriver using the Service class
