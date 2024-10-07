@@ -10,7 +10,7 @@ permissions:
   deployments: write
   pull-requests: write
   statuses: write
-  
+
 jobs:
   build-test-deploy:
     runs-on: ubuntu-latest
@@ -95,6 +95,7 @@ jobs:
         env:
           APP_URL: ${{ steps.vercel_deploy.outputs.url }}
         run: |
+          echo "APP_URL is: $APP_URL"
           pytest --url $APP_URL
 
       # Deploy to Vercel (Production) if tests pass and branch is main
