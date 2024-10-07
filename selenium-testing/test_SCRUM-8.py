@@ -1,10 +1,16 @@
 import time
+import argparse
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
+
+# argument parser to accept URL from the command line
+parser = argparse.ArgumentParser(description='Selenium test for navigating the website.')
+parser.addoption('--url', help='URL of the site to test', required=True)
+args = parser.parse_args()
 
 '''
 This script uses a chrome webdriver that requires Chrome browser version 115 or newer
@@ -23,7 +29,7 @@ driver = webdriver.Chrome(service=service)
 
 try:
     # Go to the website
-    driver.get('http://localhost:5173/')
+    driver.get(args.url)
     
     # Find the input element by id and type in the employee ID
     emp_id_input = driver.find_element(By.ID, "empId")
