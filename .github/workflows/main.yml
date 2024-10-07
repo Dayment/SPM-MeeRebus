@@ -1,4 +1,4 @@
-name: CI/CD for Vue Frontend and Selenium Tests
+name: CI/CD for Vue Frontend and Selenium Testing
 
 on:
   push:
@@ -9,6 +9,7 @@ on:
 jobs:
   deploy_to_staging:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -32,30 +33,29 @@ jobs:
         run: |
           cd SPM-MeeRebus
           npm install -g vercel
-          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod  # Deploy to staging
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod
         id: deploy_staging
 
-  get_preview_url:
-    needs: deploy_to_staging
+  fetch_preview_url:
     runs-on: ubuntu-latest
+    needs: deploy_to_staging
 
     steps:
       - name: Fetch Vercel Preview URL
         uses: zentered/vercel-preview-url@v1.1.9
-        id: vercel_preview_url
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         with:
           vercel_project_id: ${{ secrets.VERCEL_PROJECT_ID }}
-          branch: test-ci
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
-      - name: Output Preview URL
+      - name: Output the preview URL
         run: |
           echo "Preview URL: ${{ steps.vercel_preview_url.outputs.preview_url }}"
         id: output_url
+
   selenium_tests:
-    needs: get_preview_url
     runs-on: ubuntu-latest
+    needs: fetch_preview_url
     services:
       selenium:
         image: selenium/standalone-chrome:latest
@@ -73,26 +73,12 @@ jobs:
 
       - name: Install Selenium dependencies
         run: |
-          cd selenium-testing
+          cd selenium-testing 
           pip install selenium pytest
 
       - name: Run Selenium tests
         run: |
-          cd selenium-testing
-          echo "Testing against: ${{ steps.output_url.outputs.preview_url }}"
-          python -m pytest --url "${{ steps.output_url.outputs.preview_url }}"
-
-  deploy_to_production:
-    needs: selenium_tests
-    if: success()  # Only deploy to production if tests pass
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Deploy to Vercel (Production)
-        run: |
-          cd SPM-MeeRebus
-          npm install -g vercel
-          vercel --prod --token ${{ secrets.VERCEL_TOKEN }}  # Deploy to production
+          cd selenium-testing  
+          FRONTEND_URL="${{ steps.output_url.outputs.preview_url }}"
+          echo "Testing against: $FRONTEND_URL"
+          python -m pytest --url "$FRONTEND_URL"
