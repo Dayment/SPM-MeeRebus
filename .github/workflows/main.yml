@@ -9,7 +9,6 @@ on:
 jobs:
   deploy_to_staging:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -33,32 +32,28 @@ jobs:
         run: |
           cd SPM-MeeRebus
           npm install -g vercel
-          vercel --token ${{ secrets.VERCEL_TOKEN }}  # Deploy to staging
+          vercel --token ${{ secrets.VERCEL_TOKEN }} --prod  # Deploy to staging
         id: deploy_staging
 
-      - name: Get the Vercel Preview URL
+  get_preview_url:
+    needs: deploy_to_staging
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fetch Vercel Preview URL
         uses: zentered/vercel-preview-url@v1.1.9
-        if: github.event_name != 'pull_request'
         id: vercel_preview_url
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          GITHUB_REF: "main"
-          GITHUB_REPOSITORY: "your-repo/your-project"
         with:
           vercel_project_id: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Wait for Vercel Deployment Readiness
-        uses: UnlyEd/github-action-await-vercel@v1
-        id: await-vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        with:
-          deployment-url: ${{ steps.vercel_preview_url.outputs.preview_url }}
-          timeout: 420
-          poll-interval: 15
+          branch: test-ci
+      - name: Output Preview URL
+        run: echo "Preview URL: ${{ steps.vercel_preview_url.outputs.preview_url }}"
+        id: output_url
 
   selenium_tests:
-    needs: deploy_to_staging
+    needs: get_preview_url
     runs-on: ubuntu-latest
     services:
       selenium:
@@ -80,14 +75,11 @@ jobs:
           cd selenium-testing
           pip install selenium pytest
 
-      - name: Get Vercel URL from previous step
-        run: |
-          echo "Using Vercel Preview URL: ${{ steps.vercel_preview_url.outputs.preview_url }}"
-
       - name: Run Selenium tests
         run: |
           cd selenium-testing
-          pytest selenium-test.py --url "${{ steps.vercel_preview_url.outputs.preview_url }}"
+          echo "Testing against: ${{ steps.output_url.outputs.preview_url }}"
+          python -m pytest --url "${{ steps.output_url.outputs.preview_url }}"
 
   deploy_to_production:
     needs: selenium_tests
