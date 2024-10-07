@@ -55,11 +55,20 @@ jobs:
 
       - name: Install Selenium dependencies
         run: |
-          pip install selenium
+          cd selenium-testing 
+          pip install selenium pytest
+
+      - name: Get the Vercel URL
+        run: |
+          cd SPM-MeeRebus/SPM-MeeRebus 
+          export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
+          echo "Deployed URL: $FRONTEND_URL"
 
       - name: Run Selenium tests
         run: |
+          cd selenium-testing  
           export FRONTEND_URL=$(vercel url --token ${{ secrets.VERCEL_TOKEN }})
+          echo "Testing against: $FRONTEND_URL"
           python -m pytest --url "$FRONTEND_URL"
 
   deploy_to_production:
