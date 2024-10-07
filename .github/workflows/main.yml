@@ -5,7 +5,12 @@ on:
     branches: [ main, test-ci ]
   pull_request:
     branches: [ main, test-ci ]
-
+permissions:
+  contents: write
+  deployments: write
+  pull-requests: write
+  statuses: write
+  
 jobs:
   build-test-deploy:
     runs-on: ubuntu-latest
