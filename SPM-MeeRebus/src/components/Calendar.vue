@@ -111,7 +111,7 @@
               <span class="task-title">
                 {{ day }}
                 ({{ this.formatWFHTime(getWFHForDay(day).time) }})
-                {{ getWFHForDay(day).employee.staff_fname }} :
+                {{ getWFHForDay(day)?.employee?.staff_fname || "You" }} :
                 {{ getWFHForDay(day).reason || 'No Reason' }}</span
               >
             </div>
