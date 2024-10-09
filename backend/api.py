@@ -72,7 +72,14 @@ def create_app(test_config=None):
 
     # Get all arrangements
     # Use for HR or whoever is supposed to see everything
+    @app.route('/arrangement', methods=['GET'])
+    def get_all_arrangements():
+        response = supabase.table('arrangement').select('*').execute()
         
+        if response.data:
+            return jsonify(response.data), 200  
+        else:
+            return jsonify({"error": "No arrangements found"}), 404
 
     # Get arrangement for specific employee
     @app.route('/arrangement/emp/<int:staff_id>', methods=['GET'])
