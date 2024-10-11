@@ -341,7 +341,29 @@ def create_app(test_config=None):
 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+    
+    # Reset arrangement status from 3 to 0
+    @app.route('/arrangement/test_scrum_8_reset_arrangement_status/<int:arrangement_id>', methods=['PUT'])
+    def uncancel_arrangement(arrangement_id):
+        try:
+            # Get the arrangement by its ID
+            arrangement_response = supabase.table('arrangement').select('*').eq('arrangement_id', arrangement_id).single().execute()
 
+            if arrangement_response.data:
+                # Update the status to 3 (Cancelled)
+                update_response = supabase.table('arrangement').update({
+                    "status": 0
+                }).eq('arrangement_id', arrangement_id).execute()
+
+                if update_response.data:
+                    return jsonify({"message": "Arrangement uncancelled successfully."}), 200
+                else:
+                    return jsonify({"error": "Failed to uncancel the arrangement."}), 500
+            else:
+                return jsonify({"error": "Arrangement not found."}), 404
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     return app
         
