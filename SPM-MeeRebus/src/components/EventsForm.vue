@@ -155,9 +155,11 @@
           window.alert('This event date overlaps with an existing event. Please choose a different date.');
         } else {
            // Post request to create an event
-           
+           const empId = localStorage.getItem("employeeId")
            await axios.post('http://127.0.0.1:5000/create-event', {
             date: this.selectedDate,
+            empId: empId,
+            creator: empId
         })
         .then(response => {
             console.log(response.data);  // Log the response to see what happens

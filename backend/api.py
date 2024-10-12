@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from supabase import create_client, Client
 import os
+import traceback
 
 
 app=Flask(__name__)
@@ -120,12 +121,14 @@ def create_event():
         # Parse the JSON data from the request body
         event_data = request.json
 
-        # Extract the 'date' field from the event data
+        # Extract fields
         date = event_data.get('date')
+        empID = event_data.get('empId')  # This corresponds to employee_Staff_ID
+        creatorID = event_data.get('creator')  # The creator of the event
 
-        # Validate the input (check if 'date' is provided)
-        if not date:
-            return jsonify({"error": "Missing date"}), 400
+        # Validate input (check if 'date', 'empID', and 'creatorID' are provided)
+        if not date or not empID or not creatorID:
+            return jsonify({"error": "Missing date, empId, or creator"}), 400
 
         # Debugging logs for incoming data
         print(f"Received event data: {event_data}")
@@ -134,29 +137,44 @@ def create_event():
         if 'supabase' not in globals():
             raise Exception("Supabase client not initialized")
 
-        # Insert the event into the database using Supabase
-        response = supabase.table('events').insert({
-            'date': date,
-                # No need to include 'event_id' if it auto-generates
+        # Step 1: Insert the event into the 'events' table
+        event_response = supabase.table('events').insert({
+            'date': date
         }).execute()
 
-        # Log the response from Supabase for debugging
-        print(f"Supabase insert response: {response}")
+        # Check if the event was successfully inserted
+        if event_response.data:
+            # Retrieve the generated event_id
+            event_id = event_response.data[0]['event_id']
+            print(f"Event created with ID: {event_id}")
 
-        # Check if the response contains the inserted data
-        if response.data:  # Access data directly from the response object
-            return jsonify({"success": True}), 200
+            # Step 2: Insert into the 'employee_has_events' table
+            junction_response = supabase.table('employee_has_events').insert({
+                'employee_staff_id': empID,  # employee ID
+                'events_event_id': event_id,  # The newly created event ID
+                'creator': creatorID  # The creator ID
+            }).execute()
+
+            # Check if the junction table insertion was successful
+            if junction_response.data:
+                return jsonify({"success": True, "event_id": event_id}), 200
+            else:
+                # Log the error if something goes wrong while inserting into the junction table
+                error_message = junction_response.error or 'Unknown error while inserting into employee_has_events'
+                print(f"Error inserting into employee_has_events: {error_message}")
+                return jsonify({"success": False, "error": error_message}), 500
         else:
-            # Log the error details from the response
-            error_message = response.error or 'Unknown error'  # Use the `error` attribute
+            # Log the error if the event insertion fails
+            error_message = event_response.error or 'Unknown error while inserting event'
             print(f"Error inserting event: {error_message}")
             return jsonify({"success": False, "error": error_message}), 500
 
     except Exception as e:
-        # Log the error for debugging purposes
-        print(f"Error: {str(e)}")
-        return jsonify({"success": False, "error": str(e)}), 500
-             
+        # Log the full traceback for debugging
+        error_trace = traceback.format_exc()
+        print(f"Error: {str(e)}\nTraceback: {error_trace}")
+        return jsonify({"success": False, "error": str(e), "traceback": error_trace}), 500
+    
 class arrangement(db.Model):
     __tablename__ = 'arrangement'  
     arrangement_id = db.Column(db.Integer, primary_key=True) # Auto incrementing, no need to manually key in
