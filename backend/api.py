@@ -133,10 +133,6 @@ def create_event():
         # Debugging logs for incoming data
         print(f"Received event data: {event_data}")
 
-        # Ensure the Supabase client is initialized correctly
-        if 'supabase' not in globals():
-            raise Exception("Supabase client not initialized")
-
         # Step 1: Insert the event into the 'events' table
         event_response = supabase.table('events').insert({
             'date': date
