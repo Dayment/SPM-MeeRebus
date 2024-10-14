@@ -15,15 +15,22 @@ const statusOptions = [
     { value: '3', label: 'Cancelled/Withdrawn' },
 ];
 
+const timeOptions = [
+    { value: '1', label: 'AM' },
+    { value: '2', label: 'PM' },
+    { value: '3', label: 'Whole Day' }
+];
+
 onMounted(() => {
     const storedArrangements = localStorage.getItem('empArrangement');
     if (storedArrangements) {
         arrangements.value = JSON.parse(storedArrangements);
+        console.log(JSON.parse(storedArrangements));
     }
 });
 
 const filteredArrangements = computed(() => {
-    return arrangements.value.filter(arrangement => {
+    const filtered = arrangements.value.filter(arrangement => {
         const matchesStatus = selectedStatus.value === '' || arrangement.status.toString() === selectedStatus.value;
         const arrangementDate = new Date(arrangement.date);
         const isAfterStartDate = !startDate.value || arrangementDate >= new Date(startDate.value);
@@ -31,13 +38,31 @@ const filteredArrangements = computed(() => {
         
         return matchesStatus && isAfterStartDate && isBeforeEndDate;
     });
+
+    // Sort the filtered arrangements by date descending
+    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 });
 
 const getStatusLabel = (status) => {
     const statusString = status.toString();
+    // Matches the value of status and turns that output into the label you see in the array above
+    // For example, if statusString is "1", it will find { value: '1', label: 'Accepted' }.
     const matchingOption = statusOptions.find(option => option.value === statusString);
+    // If match exist, return the label,  otherwise return Something went wrong
     return matchingOption ? matchingOption.label : "Something went wrong";
 };
+
+
+const getTimeLabel = (time)  => {
+    const timeString = time.toString();
+
+    const matchingOption = timeOptions.find(option => option.value === timeString);
+    // If match exist, return the label,  otherwise return Something went wrong
+    return matchingOption ? matchingOption.label : "Something went wrong";
+
+
+}
+
 
 const cancelArrangement = async (arrangementId) => {
     try {
@@ -53,6 +78,15 @@ const cancelArrangement = async (arrangementId) => {
         console.error("Error while cancelling arrangement: ", error);
     }
 };
+
+function formatDate(date) {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 </script>
 
 <template>
@@ -79,6 +113,7 @@ const cancelArrangement = async (arrangementId) => {
                     <tr>
                         <th>Date</th>
                         <th>Status</th>
+                        <th>Time</th>
                         <th>Application Reason</th>
                         <th>Rejection Reason</th>
                         <th>Actions</th>
@@ -86,13 +121,15 @@ const cancelArrangement = async (arrangementId) => {
                 </thead>
                 <tbody>
                     <tr v-for="arrangement in filteredArrangements" :key="arrangement.arrangement_id">
-                        <td>{{ new Date(arrangement.date).toLocaleString() }}</td>
+                        <!-- <td>{{ new Date(arrangement.date).toLocaleString() }}</td> -->
+                        <td>{{ formatDate(arrangement.date) }}</td>
                         <td>{{ getStatusLabel(arrangement.status) }}</td>
+                        <td>{{ getTimeLabel(arrangement.time) }}</td>
                         <td>{{ arrangement.reason_staff || 'No Reason Provided' }}</td>
                         <td>{{ arrangement.reason_man || 'N/A' }}</td>
                         <td>
                             <!-- Add Cancel Button for arrangements with status 0 or 1 -->
-                            <button v-if="arrangement.status === 0 || arrangement.status === 1" @click="cancelArrangement(arrangement.arrangement_id)" class="btn btn-danger">
+                            <button  v-if="(arrangement.status === 0 || arrangement.status === 1) && new Date(arrangement.date) >= new Date() "  @click="cancelArrangement(arrangement.arrangement_id)"  class="btn btn-danger" >
                                 Cancel Arrangement
                             </button>
                         </td>
