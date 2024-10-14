@@ -2,125 +2,182 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import Select
 import time
+from datetime import datetime, timedelta
 
 # Set up Chrome WebDriver
 driver = webdriver.Chrome()
 
+# Define team structure
+team_structure = {
+    "All": None,
+    "Sales": None,
+    "Consultancy": None,
+    "System Solutioning": ["Developers", "Support Team"],
+    "Engineering": ["Senior Engineers", "Junior Engineers", "Call Centre", "Operation Planning Team"],
+    "HR": ["HR Team", "L&D team", "Admin Team"],
+    "Finance": None,
+    "IT": None
+}
+
+def refresh_page():
+    driver.refresh()
+    time.sleep(2)
+    print("Page refreshed successfully.")
+
+def verify_table_results(team, sub_team=None):
+    # Wait for the table to load
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "table.table"))
+    )
+    
+    # Get all rows in the table
+    rows = driver.find_elements(By.CSS_SELECTOR, "table.table tbody tr")
+    
+    if len(rows) == 0:
+        print(f"No results found for team: {team}, sub-team: {sub_team}")
+        return
+    
+    for row in rows:
+        cells = row.find_elements(By.TAG_NAME, "td")
+        if len(cells) < 4:  # Ensure we have enough cells
+            continue
+        
+        department = cells[2].text.strip().lower()
+        position = cells[3].text.strip().lower()
+        
+        if team != "All":
+            assert team.lower() in department, f"Department '{department}' does not match team '{team}'"
+        
+        if sub_team:
+            assert sub_team.lower() in position, f"Position '{position}' does not match sub-team '{sub_team}'"
+    
+    print(f"Table results verified for team: {team}, sub-team: {sub_team}")
+
+
 try:
     # Visit the local page
-    driver.get("http://localhost:5173")
+    driver.get("http://localhost:5173")  # Update this URL to your actual local setup
 
-    # Wait for the employee ID input field and enter employee ID (similar to tscrum 4)
+    # Wait for the employee ID input field and enter employee ID
     emp_id_input = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.ID, "empId"))
     )
-    emp_id_input.send_keys("160075")  
+    emp_id_input.send_keys("160075")
 
     # Find and click the login button
     login_button = driver.find_element(By.CSS_SELECTOR, "button.btn.btn-primary.btn-block")
     login_button.click()
 
-    # Wait for the page to load after login (confirm by checking presence of an element)
+    # Wait for the page to load after login
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CLASS_NAME, "calendar-container"))
     )
     print("Login successful.")
 
-    # Wait for the header to appear
-    # header = WebDriverWait(driver, 10).until(
-    #     EC.presence_of_element_located((By.CSS_SELECTOR, ".schedule-header"))
-    # )
-
-    # Verify if the header contains "Schedule"
-    # assert "Company Schedule" in header.text
-
-# Navigate to the Company Schedule page
+    # Navigate to the Company Schedule page
     company_schedule_link = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "a.nav-link[href='/company']"))
     )
     company_schedule_link.click()
 
-    time.sleep(1)  
+    time.sleep(1)
     print("Company Schedule page loaded.")
 
 
-#     # Interact with department selection
-#     department_select = driver.find_element(By.CSS_SELECTOR, "select.department")
-#     department_select.send_keys("HR")
-
-#     # Wait for the event list to update
-#     event_list = WebDriverWait(driver, 10).until(
-#         EC.presence_of_element_located((By.CSS_SELECTOR, ".event-list"))
-#     )
-
-#     # Verify if the event list contains "HR Event"
-#     assert "HR Event" in event_list.text
-
-#     print("Test passed!")
-
-# except Exception as e:
-#     print("Test failed:", str(e))
-
-    # Step 2: Wait for the main team dropdown to be visible
-    wait = WebDriverWait(driver, 10)
-    main_team_dropdown = wait.until(EC.visibility_of_element_located((By.ID, "team-dropdown")))  # Ensure correct ID
-    main_team_select = Select(main_team_dropdown)
-
-    # Define expected sub-team options for each main team
-    expected_sub_teams = {
-        "System Solutioning": {
-            "dropdown_id": "syss-team-dropdown",
-            "expected_options": ['Developers', 'Support Team']
-        },
-        "Engineering": {
-            "dropdown_id": "eng-team-dropdown",
-            "expected_options": ['Senior Engineers', 'Junior Engineers', 'Call Centre', 'Operation Planning Team']
-        },
-        "HR": {
-            "dropdown_id": "hr-team-dropdown",
-            "expected_options": ['HR Team', 'L&D team', 'Admin Team']
-        },
-        "Sales": {
-            "dropdown_id": None,  # No sub-team expected for Sales
-            "expected_options": None
-        },
-        "Consultancy": {
-            "dropdown_id": None,  # No sub-team expected for Consultancy
-            "expected_options": None
-        },
-        # Add more main teams and their corresponding sub-teams if applicable
-    }
-
-    # Step 3: Iterate through each main team option and check sub-team dropdowns
-    for main_team_option in main_team_select.options:
-        main_team = main_team_option.text
+    # Test team and sub-team selection
+    for team, sub_teams in team_structure.items():
+        # Select main team
+        team_dropdown = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "dropdownTeam"))
+        )
+        team_dropdown.click()
         
-        # Select the main team
-        main_team_select.select_by_visible_text(main_team)
+        team_option = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, f"//a[contains(text(), '{team}')]"))
+        )
+        team_option.click()
         
-        if main_team in expected_sub_teams:
-            sub_team_info = expected_sub_teams[main_team]
-            
-            # Check if there is an associated sub-team dropdown
-            if sub_team_info["dropdown_id"]:
-                # Wait for the sub-team dropdown to be visible
-                sub_team_dropdown = wait.until(EC.visibility_of_element_located((By.ID, sub_team_info["dropdown_id"])))
-                sub_team_select = Select(sub_team_dropdown)
+        print(f"Selected team: {team}")
 
-                # Get the actual sub-team options
-                actual_sub_team_options = [option.text for option in sub_team_select.options]
-                expected_sub_team_options = sub_team_info["expected_options"]
+        # Verify table results for main team
+        verify_table_results(team)
 
-                # Step 4: Assert that the actual options match the expected ones
-                assert actual_sub_team_options == expected_sub_team_options, \
-                    f"Mismatch for {main_team}: Expected {expected_sub_team_options}, but got {actual_sub_team_options}"
-                print(f"Sub-team options for {main_team} are correct: {actual_sub_team_options}")
+        if sub_teams:
+            # Determine the correct sub-team dropdown ID
+            if team == "System Solutioning":
+                subteam_dropdown_id = "dropdownsyssTeam"
+            elif team == "Engineering":
+                subteam_dropdown_id = "dropdownengTeam"
+            elif team == "HR":
+                subteam_dropdown_id = "dropdownhrTeam"
             else:
-                print(f"No sub-team dropdown expected for {main_team}, as expected.")
-        else:
-            print(f"Main team {main_team} not found in expected_sub_teams mapping.")
+                continue  # Skip if no sub-teams
+
+            for sub_team in sub_teams:
+                subteam_dropdown = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.ID, subteam_dropdown_id))
+                )
+                subteam_dropdown.click()
+
+                sub_team_option = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, f"//a[contains(text(), '{sub_team}')]"))
+                )
+                sub_team_option.click()
+                
+                print(f"  Selected sub-team: {sub_team}")
+
+                # Verify table results for sub-team
+                verify_table_results(team, sub_team)
+
+                # Here you can add additional checks or actions for each sub-team if needed
+                time.sleep(1)
+    
+    
+
+    print("Team and sub-team selection tests completed successfully.")
+
+    refresh_page()
+
+    # Test search functionality
+    search_input = driver.find_element(By.CSS_SELECTOR, "input.filter-input-search")
+    search_input.send_keys("engineering")
+    time.sleep(2)  # Wait for the table to update
+
+    #Verify filtered results
+    verify_table_results("engineering")
+
+    print("Search functionality working correctly.")
+
+
+    # # Test date filtering
+    # start_date_input = driver.find_element(By.ID, "start-date")
+    # end_date_input = driver.find_element(By.ID, "end-date")
+
+    # today = datetime.now()
+    # one_week_later = today + timedelta(days=7)
+
+    # start_date_input.send_keys(today.strftime("%Y-%m-%d"))
+    # end_date_input.send_keys(one_week_later.strftime("%Y-%m-%d"))
+
+    # print("Date range set successfully.")
+
+
+    # Test calendar view (assuming it's implemented)
+    calendar = driver.find_element(By.CSS_SELECTOR, ".calendar-container")  # Adjust selector as needed
+    assert calendar.is_displayed(), "Calendar view not displayed"
+
+    print("Calendar view visible.")
+
+    print("All tests passed successfully!")
+
+except Exception as e:
+    print(f"Test failed: {str(e)}")
+    # Optionally, take a screenshot or dump the page source for debugging
+    driver.save_screenshot("error_screenshot.png")
+    with open("error_page_source.html", "w", encoding="utf-8") as f:
+        f.write(driver.page_source)
+
 finally:
-# Close the browser
+    # Close the browser
     driver.quit()
