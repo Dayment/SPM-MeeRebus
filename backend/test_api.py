@@ -259,6 +259,230 @@ class FlaskAPITestCase(unittest.TestCase):
 
         pass
 
+    @patch('api.supabase')
+    def test_get_unique_departments_success(self, mock_supabase):
+        # Mock the Supabase client response for successful department retrieval
+        mock_supabase.table().select().execute.return_value = MagicMock(
+            data=[{'dept': 'Engineering'}, {'dept': 'HR'}, {'dept': 'Marketing'}]
+        )
+        
+        # Simulate a GET request to /departments
+        response = self.client.get('/departments')
+        
+        # Assert that the status code is 200 OK
+        self.assertEqual(response.status_code, 200)
+        
+        # Check that the correct departments are in the response data
+        self.assertIn(b'Engineering', response.data)
+        self.assertIn(b'HR', response.data)
+        self.assertIn(b'Marketing', response.data)
+
+    @patch('api.supabase')
+    def test_get_unique_departments_no_data(self, mock_supabase):
+        # Mock the Supabase client response when no departments are found
+        mock_supabase.table().select().execute.return_value = MagicMock(data=[])
+        
+        # Simulate a GET request to /departments
+        response = self.client.get('/departments')
+        
+        # Assert that the status code is 404 Not Found
+        self.assertEqual(response.status_code, 404)
+        
+        # Assert the proper error message is in the response
+        self.assertIn(b'No departments found', response.data)
+
+    @patch('api.supabase')
+    def test_get_unique_departments_internal_error(self, mock_supabase):
+        # Mock the Supabase client response to raise an exception
+        mock_supabase.table().select().execute.side_effect = Exception('Internal Server Error')
+        
+        # Simulate a GET request to /departments
+        response = self.client.get('/departments')
+        
+        # Assert that the status code is 500 Internal Server Error
+        self.assertEqual(response.status_code, 500)
+        
+        # Assert the error message is in the response
+        self.assertIn(b'Internal Server Error', response.data)
+
+    @patch('api.supabase')
+    def test_get_unique_event_dates_success(self, mock_supabase):
+        # Mock the Supabase client response for successful event date retrieval
+        mock_supabase.table().select().execute.return_value = MagicMock(
+            data=[{'date': '2024-10-15', 'description': 'Annual Meeting'},
+                  {'date': '2024-11-20', 'description': 'Team Workshop'}]
+        )
+        
+        # Simulate a GET request to /event-dates
+        response = self.client.get('/event-dates')
+        
+        # Assert that the status code is 200 OK
+        self.assertEqual(response.status_code, 200)
+        
+        # Check that the correct event dates and descriptions are in the response data
+        self.assertIn(b'2024-10-15', response.data)
+        self.assertIn(b'Annual Meeting', response.data)
+        self.assertIn(b'2024-11-20', response.data)
+        self.assertIn(b'Team Workshop', response.data)
+
+    @patch('api.supabase')
+    def test_get_unique_event_dates_no_data(self, mock_supabase):
+        # Mock the Supabase client response when no event dates are found
+        mock_supabase.table().select().execute.return_value = MagicMock(data=[])
+        
+        # Simulate a GET request to /event-dates
+        response = self.client.get('/event-dates')
+        
+        # Assert that the status code is 404 Not Found
+        self.assertEqual(response.status_code, 404)
+        
+        # Assert the proper error message is in the response
+        self.assertIn(b'No event dates found', response.data)
+
+    @patch('api.supabase')
+    def test_get_unique_event_dates_internal_error(self, mock_supabase):
+        # Mock the Supabase client response to raise an exception
+        mock_supabase.table().select().execute.side_effect = Exception('Internal Server Error')
+        
+        # Simulate a GET request to /event-dates
+        response = self.client.get('/event-dates')
+        
+        # Assert that the status code is 500 Internal Server Error
+        self.assertEqual(response.status_code, 500)
+        
+        # Assert the error message is in the response
+        self.assertIn(b'Internal Server Error', response.data)
+
+
+
+    @patch('api.supabase')
+    def test_create_event_success(self, mock_supabase):
+        # Mock successful event and junction table insertions
+        mock_supabase.table().insert().execute.side_effect = [
+            MagicMock(data=[{'event_id': 1}]),  # Event creation response
+            MagicMock(data=[{'employee_staff_id': 1}])  # Employee-event junction table insertion response
+        ]
+        
+        # Simulate a POST request to /create-event
+        data = {
+            'date': '2024-10-15T10:00:00',
+            'empId': 1,
+            'creator': 2
+        }
+        
+        response = self.client.post('/create-event', json=data)
+        
+        # Assert the response is 200 OK
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'success', response.data)
+
+    @patch('api.supabase')
+    def test_create_event_missing_date(self, mock_supabase):
+        data = {
+            'empId': 1,
+            'creator': 2
+        }
+        
+        response = self.client.post('/create-event', json=data)
+        
+        # Assert the response is 400 due to missing date
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b'Missing date, empId, or creator', response.data)
+
+    @patch('api.supabase')
+    def test_create_event_missing_empid(self, mock_supabase):
+        data = {
+            'date': '2024-10-15T10:00:00',
+            'creator': 2
+        }
+        
+        response = self.client.post('/create-event', json=data)
+        
+        # Assert the response is 400 due to missing empId
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b'Missing date, empId, or creator', response.data)
+
+    @patch('api.supabase')
+    def test_create_event_missing_creator(self, mock_supabase):
+        data = {
+            'date': '2024-10-15T10:00:00',
+            'empId': 1
+        }
+        
+        response = self.client.post('/create-event', json=data)
+        
+        # Assert the response is 400 due to missing creator
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b'Missing date, empId, or creator', response.data)
+
+    @patch('api.supabase')
+    def test_create_event_insertion_fails(self, mock_supabase):
+        # Mock the response to simulate event insertion failure
+        mock_supabase.table().insert().execute.return_value = MagicMock(data=None, error='Event insertion failed')
+
+        # Prepare the data for the POST request
+        data = {
+            'date': '2024-10-15T10:00:00',
+            'empId': 1,
+            'creator': 2
+        }
+
+# Send a POST request to the create-event endpoint
+        response = self.client.post('/create-event', json=data)
+        
+        # Assert the response is 500 Internal Server Error
+        self.assertEqual(response.status_code, 500)
+        
+        # Assert the error message "Unknown error while inserting event" is in the response
+        self.assertIn(b'Event insertion failed', response.data)
+        
+    @patch('api.supabase')
+    def test_create_event_junction_insertion_fails(self, mock_supabase):
+        # Mock the event insertion success
+        mock_supabase.table().insert().execute.side_effect = [
+            MagicMock(data=[{'event_id': 1}]),  # Successful event insertion
+            MagicMock(data=None, error='Junction insertion failed')  # Failed junction insertion
+        ]
+
+        # Prepare the data for the POST request
+        data = {
+            'date': '2024-10-15T10:00:00',
+            'empId': 1,
+            'creator': 2
+        }
+
+        # Send a POST request to the create-event endpoint
+        response = self.client.post('/create-event', json=data)
+        
+        # Assert the response is 500 Internal Server Error
+        self.assertEqual(response.status_code, 500)
+        
+        # Assert the error message "Unknown error while inserting into employee_has_events" is in the response
+        self.assertIn(b'Junction insertion failed', response.data)        
+        
+    @patch('api.supabase')
+    def test_create_event_raises_exception(self, mock_supabase):
+        # Simulate an exception being raised during the event insertion
+        mock_supabase.table().insert().execute.side_effect = Exception('Simulated Exception')
+
+        # Prepare the data for the POST request
+        data = {
+            'date': '2024-10-15T10:00:00',
+            'empId': 1,
+            'creator': 2
+        }
+
+        # Send a POST request to the create-event endpoint
+        response = self.client.post('/create-event', json=data)
+        
+        # Assert the response is 500 Internal Server Error
+        self.assertEqual(response.status_code, 500)
+        
+        # Assert the response contains the simulated exception message
+        self.assertIn(b'Simulated Exception', response.data)
+
+        # Assert the response contains the traceback information
+        self.assertIn(b'Traceback', response.data)
 
 
 if __name__ == '__main__':
