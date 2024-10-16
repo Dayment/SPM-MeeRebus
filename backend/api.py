@@ -31,6 +31,12 @@ def create_app(test_config=None):
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    db.init_app(app)
+    
+    if supabase is None:
+        supabase = create_supabase_client()
+
+
 
     # Get specific employee
     @app.route('/employee/<int:staff_id>', methods=['GET'])
@@ -56,119 +62,119 @@ def create_app(test_config=None):
             return jsonify({"error": "No employees found"}), 404
 
 
-# Get all unique departments
-@app.route('/departments', methods=['GET'])
-def get_unique_departments():
-    try:
-        # Query Supabase to get distinct department names
-        response = supabase.table('employee').select('dept').execute()
+    # Get all unique departments
+    @app.route('/departments', methods=['GET'])
+    def get_unique_departments():
+        try:
+            # Query Supabase to get distinct department names
+            response = supabase.table('employee').select('dept').execute()
 
-        if response.data:
-            # Extract unique department names
-            departments = {employee['dept'] for employee in response.data if employee.get('dept')}  # Use a set for uniqueness
-            return jsonify(list(departments)), 200
-        else:
-            return jsonify({"error": "No departments found"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-    
-@app.route('/event-dates', methods=['GET'])
-def get_unique_event_dates():
-    try:
-        # Query Supabase to get distinct event dates and their descriptions
-        response = supabase.table('events').select('date, description').execute()
-
-        if response.data:
-            # Create a dictionary mapping event date to event description
-            event_dates_dict = {event['date']: event['description'] for event in response.data if event.get('date') and event.get('description')}
-            return jsonify(event_dates_dict), 200
-        else:
-            return jsonify({"error": "No event dates found"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-@app.route('/all-events-datetimes', methods=['GET'])
-def get_all_event_datetimes():
-    try:
-        # Query Supabase to get the event dates (assuming the column name is 'date')
-        response = supabase.table('events').select('date').execute()
-
-        # Debugging: Print the response to verify what is being returned
-        print(response.data)
-
-        if response.data:
-            # Extract all event dates, ensuring we only include non-null dates
-            event_dates = [event.get('date') for event in response.data if event.get('date')]
-            
-            # If the event_dates list is populated, return it, otherwise return a "not found" message
-            if event_dates:
-                return jsonify(event_dates), 200
+            if response.data:
+                # Extract unique department names
+                departments = {employee['dept'] for employee in response.data if employee.get('dept')}  # Use a set for uniqueness
+                return jsonify(list(departments)), 200
             else:
-                return jsonify({"error": "No valid event dates found"}), 404
-        else:
-            return jsonify({"error": "No events found"}), 404
-    except Exception as e:
-        # Log the error for further debugging
-        print(f"Error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+                return jsonify({"error": "No departments found"}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+        
+    @app.route('/event-dates', methods=['GET'])
+    def get_unique_event_dates():
+        try:
+            # Query Supabase to get distinct event dates and their descriptions
+            response = supabase.table('events').select('date, description').execute()
 
-@app.route('/create-event', methods=['POST'])
-def create_event():
-    try:
-        # Parse the JSON data from the request body
-        event_data = request.json
+            if response.data:
+                # Create a dictionary mapping event date to event description
+                event_dates_dict = {event['date']: event['description'] for event in response.data if event.get('date') and event.get('description')}
+                return jsonify(event_dates_dict), 200
+            else:
+                return jsonify({"error": "No event dates found"}), 404
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    @app.route('/all-events-datetimes', methods=['GET'])
+    def get_all_event_datetimes():
+        try:
+            # Query Supabase to get the event dates (assuming the column name is 'date')
+            response = supabase.table('events').select('date').execute()
 
-        # Extract fields
-        date = event_data.get('date')
-        empID = event_data.get('empId')  # This corresponds to employee_Staff_ID
-        creatorID = event_data.get('creator')  # The creator of the event
+            # Debugging: Print the response to verify what is being returned
+            print(response.data)
 
-        # Validate input (check if 'date', 'empID', and 'creatorID' are provided)
-        if not date or not empID or not creatorID:
-            return jsonify({"error": "Missing date, empId, or creator"}), 400
+            if response.data:
+                # Extract all event dates, ensuring we only include non-null dates
+                event_dates = [event.get('date') for event in response.data if event.get('date')]
+                
+                # If the event_dates list is populated, return it, otherwise return a "not found" message
+                if event_dates:
+                    return jsonify(event_dates), 200
+                else:
+                    return jsonify({"error": "No valid event dates found"}), 404
+            else:
+                return jsonify({"error": "No events found"}), 404
+        except Exception as e:
+            # Log the error for further debugging
+            print(f"Error: {str(e)}")
+            return jsonify({"error": str(e)}), 500
 
-        # Debugging logs for incoming data
-        print(f"Received event data: {event_data}")
+    @app.route('/create-event', methods=['POST'])
+    def create_event():
+        try:
+            # Parse the JSON data from the request body
+            event_data = request.json
 
-        # Step 1: Insert the event into the 'events' table
-        event_response = supabase.table('events').insert({
-            'date': date
-        }).execute()
+            # Extract fields
+            date = event_data.get('date')
+            empID = event_data.get('empId')  # This corresponds to employee_Staff_ID
+            creatorID = event_data.get('creator')  # The creator of the event
 
-        # Check if the event was successfully inserted
-        if event_response.data:
-            # Retrieve the generated event_id
-            event_id = event_response.data[0]['event_id']
-            print(f"Event created with ID: {event_id}")
+            # Validate input (check if 'date', 'empID', and 'creatorID' are provided)
+            if not date or not empID or not creatorID:
+                return jsonify({"error": "Missing date, empId, or creator"}), 400
 
-            # Step 2: Insert into the 'employee_has_events' table
-            junction_response = supabase.table('employee_has_events').insert({
-                'employee_staff_id': empID,  # employee ID
-                'events_event_id': event_id,  # The newly created event ID
-                'creator': creatorID  # The creator ID
+            # Debugging logs for incoming data
+            print(f"Received event data: {event_data}")
+
+            # Step 1: Insert the event into the 'events' table
+            event_response = supabase.table('events').insert({
+                'date': date
             }).execute()
 
-            # Check if the junction table insertion was successful
-            if junction_response.data:
-                return jsonify({"success": True, "event_id": event_id}), 200
-            else:
-                # Log the error if something goes wrong while inserting into the junction table
-                error_message = junction_response.error or 'Unknown error while inserting into employee_has_events'
-                print(f"Error inserting into employee_has_events: {error_message}")
-                return jsonify({"success": False, "error": error_message}), 500
-        else:
-            # Log the error if the event insertion fails
-            error_message = event_response.error or 'Unknown error while inserting event'
-            print(f"Error inserting event: {error_message}")
-            return jsonify({"success": False, "error": error_message}), 500
+            # Check if the event was successfully inserted
+            if event_response.data:
+                # Retrieve the generated event_id
+                event_id = event_response.data[0]['event_id']
+                print(f"Event created with ID: {event_id}")
 
-    except Exception as e:
-        # Log the full traceback for debugging
-        error_trace = traceback.format_exc()
-        print(f"Error: {str(e)}\nTraceback: {error_trace}")
-        return jsonify({"success": False, "error": str(e), "traceback": error_trace}), 500
-    
+                # Step 2: Insert into the 'employee_has_events' table
+                junction_response = supabase.table('employee_has_events').insert({
+                    'employee_staff_id': empID,  # employee ID
+                    'events_event_id': event_id,  # The newly created event ID
+                    'creator': creatorID  # The creator ID
+                }).execute()
+
+                # Check if the junction table insertion was successful
+                if junction_response.data:
+                    return jsonify({"success": True, "event_id": event_id}), 200
+                else:
+                    # Log the error if something goes wrong while inserting into the junction table
+                    error_message = junction_response.error or 'Unknown error while inserting into employee_has_events'
+                    print(f"Error inserting into employee_has_events: {error_message}")
+                    return jsonify({"success": False, "error": error_message}), 500
+            else:
+                # Log the error if the event insertion fails
+                error_message = event_response.error or 'Unknown error while inserting event'
+                print(f"Error inserting event: {error_message}")
+                return jsonify({"success": False, "error": error_message}), 500
+
+        except Exception as e:
+            # Log the full traceback for debugging
+            error_trace = traceback.format_exc()
+            print(f"Error: {str(e)}\nTraceback: {error_trace}")
+            return jsonify({"success": False, "error": str(e), "traceback": error_trace}), 500
+        
 
     # Get specific arrangement by arrangement_id
     @app.route('/arrangement/<int:arrangement_id>', methods=['GET'])
