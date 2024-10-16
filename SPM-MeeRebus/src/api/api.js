@@ -68,6 +68,47 @@ export const getTeamApprovedArrangement = async (empId) => {
     }
   };
 
+  export const getAllDepartments = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/departments`);
+      return response.data; 
+    } catch (error) {
+      console.error('Error fetching list of unique departments', error);
+      throw error; 
+    }
+  };
+
+  export const getAllDatesWithEvents = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/event-dates`);
+      return response.data; 
+    } catch (error) {
+      console.error('Error fetching list of unique departments', error);
+      throw error; 
+    }
+  };
+
+  export const getExistingEvents = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/all-events-datetimes`);
+      return response.data; 
+    } catch (error) {
+      console.error('Error fetching list of existing events', error);
+      throw error; 
+    }
+  };
+
+  export const createEvent = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/create-event`);
+      return response.data; 
+    } catch (error) {
+      console.error('Error creating event', error);
+      throw error; 
+    }
+  };
+
+
   export const getDeptApprovedArrangement2 = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/arrangement/obj`);
