@@ -15,11 +15,23 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarNav">
               <ul class="navbar-nav" v-if="eventBus.isLoggedIn">
-                  <li class="nav-item">
+                <li class="nav-item dropdown">
+                  <button class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    Schedule
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/home">Own Schedule</a></li>
+                    <li><a class="dropdown-item" href="/team">Team Schedule</a></li>
+                  </ul>
+                </li>
+                  <!-- <li class="nav-item">
                       <a class="nav-link" href="/home">Own Schedule</a>
                   </li>
                   <li class="nav-item">
                       <a class="nav-link" href="/team">Team Schedule</a>
+                  </li> -->
+                  <li class="nav-item">
+                      <a class="nav-link" href="/history">Application History</a>
                   </li>
                   <li class="nav-item" v-if="showDepartmentNav">
                       <a class="nav-link" href="/dept">Department Schedule</a>
@@ -27,6 +39,7 @@
                   <li class="nav-item" v-if="showCompanyNav">
                       <a class="nav-link" href="/company">Company Schedule</a>
                   </li>
+                  
                   <li class="nav-item">
                       <a class="nav-link" href="/apply">Apply For Arrangement</a>
                   </li>
@@ -34,6 +47,12 @@
                       <a class="nav-link" href="/events">Apply For Events</a>
                   </li>
               </ul>
+              <div class="logout-container" v-if="eventBus.isLoggedIn">
+                <a href="/" @click="logout()" class="logout-link">
+                  <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+              </div>
+
           </div>
       </div>
   </nav>
@@ -71,6 +90,11 @@ export default {
           this.showDepartmentNav = eventBus.isDir || isDir;
           this.showCompanyNav = eventBus.isHR || isHR;
           this.showEvents = eventBus.isHR || isHR
+
+      },
+      logout(){
+        // Clears EVERYTHING from localstorage
+        localStorage.clear()
       }
   },
   setup() {
@@ -78,3 +102,9 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.logout-container {
+  margin-left: auto;
+}
+</style>

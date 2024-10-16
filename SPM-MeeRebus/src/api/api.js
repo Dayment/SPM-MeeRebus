@@ -33,6 +33,19 @@ export const getAllApprovedArrangement = async () => {
     }
   };
 
+  export const createWFHRequest = async (payload) => { 
+    try {
+      console.log(payload,"payloadddad")
+      const response = await axios.post(`${API_BASE_URL}/arrangement/submit`,payload);
+     
+
+      return response.data;
+    } catch (error) {
+      console.error("Error creating WFH request:", error);
+      throw error;
+    }
+  };
+
 export const getTeamApprovedArrangement = async (empId) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/arrangement/posi/${empId}`);
@@ -95,3 +108,14 @@ export const getTeamApprovedArrangement = async (empId) => {
     }
   };
 
+
+  export const getDeptApprovedArrangement2 = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/arrangement/obj`);
+      localStorage.setItem("deptArrangements", JSON.stringify(response.data));
+      return response.data; 
+    } catch (error) {
+      console.error('Error fetching approved arrangements:', error);
+      throw error; 
+    }
+  };

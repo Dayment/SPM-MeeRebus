@@ -111,7 +111,7 @@
               <span class="task-title">
                 {{ day }}
                 ({{ this.formatWFHTime(getWFHForDay(day).time) }})
-                {{ getWFHForDay(day).employee.staff_fname }} :
+                {{ getWFHForDay(day)?.employee?.staff_fname || "You" }} :
                 {{ getWFHForDay(day).reason || 'No Reason' }}</span
               >
             </div>
@@ -210,26 +210,26 @@ export default {
       return arrangement ? arrangement.status : null;
     },
     // Using this for conditional rendering in the V-if. Might refactor with above code if have time
-    isArrangedDayObj(day) {
-      // Creating the string for the date to do checking with the arrangement date
-      const formattedDate = `${this.currentYear}-${String(
-        this.currentMonthIndex + 1,
-      ).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    // isArrangedDayObj(day) {
+    //   // Creating the string for the date to do checking with the arrangement date
+    //   const formattedDate = `${this.currentYear}-${String(
+    //     this.currentMonthIndex + 1,
+    //   ).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-      const arrangement = this.arrangements.find((arrangement) => {
-        const arrangementDate = new Date(arrangement.date);
-        if (!isNaN(arrangementDate.getTime())) {
-          const arrangementISO = arrangementDate.toISOString().split('T')[0];
-          return arrangementISO === formattedDate; // Check for matching date
-        }
-        return false; // Skip invalid dates
-      });
-      // Return status or null if no arrangement
-      return arrangement || null;
-    },
-    parseDate(dateString) {
-      return new Date(dateString); // Converts ISO string to Date object
-    },
+    //   const arrangement = this.arrangements.find((arrangement) => {
+    //     const arrangementDate = new Date(arrangement.date);
+    //     if (!isNaN(arrangementDate.getTime())) {
+    //       const arrangementISO = arrangementDate.toISOString().split('T')[0];
+    //       return arrangementISO === formattedDate; // Check for matching date
+    //     }
+    //     return false; // Skip invalid dates
+    //   });
+    //   // Return status or null if no arrangement
+    //   return arrangement || null;
+    // },
+    // parseDate(dateString) {
+    //   return new Date(dateString); // Converts ISO string to Date object
+    // },
 
     // Set the CSS colour depending on arrangement status
     getArrangementColor(day) {
@@ -315,6 +315,13 @@ export default {
 
     // fetch the WFH details for a specific day
     getWFHForDay(day) {
+
+      // In case there is no wfh for that employee, just return. Otherwise calendar breaks
+      if (!Array.isArray(this.wfhDetails)) {
+        // console.error("wfhDetails is not an array or is null.");
+        return;
+      }
+
       const dateString = new Date(
         this.currentYear,
         this.currentMonthIndex,

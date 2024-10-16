@@ -1,0 +1,89 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, test-ci ]
+  pull_request:
+    branches: [ main, test-ci ]
+
+permissions:
+  contents: write
+  deployments: write
+  pull-requests: write
+  statuses: write
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      # Install frontend dependencies
+      - name: Install frontend dependencies
+        working-directory: ./SPM-MeeRebus
+        run: npm install
+
+      # Build the Vue app
+      - name: Build the Vue app
+        working-directory: ./SPM-MeeRebus
+        run: npm run build
+
+      # Install Vercel CLI
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      # Deploy to Vercel (Preview) and capture DEPLOYMENT_URL
+      - name: Deploy to Vercel (Preview)
+        id: vercel_deploy
+        working-directory: ./SPM-MeeRebus
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          # Deploy to Vercel and capture output (stdout and stderr)
+          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID 2>&1)
+          EXIT_CODE=$?
+          echo "Deployment Output:"
+          echo "$DEPLOYMENT_OUTPUT"
+
+          # Extract the deployment URL from the 'Preview:' line
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep '^Preview:' | awk '{ print $2 }')
+          echo "Deployment URL: $DEPLOYMENT_URL"
+
+          # Check if DEPLOYMENT_URL is empty
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "Failed to obtain deployment URL."
+            exit 1
+          fi
+
+          # Set the deployment URL as an environment variable for subsequent steps
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+
+      # Set up Python 3.8
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      # Install Python dependencies
+      - name: Install Python dependencies
+        working-directory: ./selenium-testing
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Install Chrome and Chromedriver for Selenium
+      - name: Install Chrome and Chromedriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
+          # Install Google

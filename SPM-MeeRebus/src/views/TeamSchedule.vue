@@ -31,18 +31,6 @@ onMounted(async () => {
   }
 });
 
-// const getTeamApprovedArrangement = async (empId) => {
-//   try {
-//     const response = await axios.get(`http://127.0.0.1:5000/arrangement/posi/${empId}`);
-//     localStorage.setItem("teamArrangements", JSON.stringify(response.data))
-//     return response.data; 
-//   } catch (error) {
-//     console.error('Error fetching approved arrangements:', error);
-//     throw error; 
-//   }
-// };
-
-
 const filteredWFHDetails = computed(() => {
   return approvedWFHDetails.value.filter((wfh) => {
     const fullName =
