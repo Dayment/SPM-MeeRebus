@@ -98,6 +98,7 @@ def create_app(test_config=None):
                 
                 # If the event_data_dict is populated, return it, otherwise return a "not found" message
                 if event_data_dict:
+                    print(jsonify(event_data_dict))
                     return jsonify(event_data_dict), 200
             else:
                 return jsonify({"error": "No events found"}), 404

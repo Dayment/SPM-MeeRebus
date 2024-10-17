@@ -90,7 +90,7 @@ export const getTeamApprovedArrangement = async (empId) => {
 
   export const getExistingEvents = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/all-events-datetimes`);
+      const response = await axios.get(`${API_BASE_URL}/event-dates`);
       return response.data; 
     } catch (error) {
       console.error('Error fetching list of existing events', error);

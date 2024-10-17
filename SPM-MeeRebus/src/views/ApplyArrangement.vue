@@ -32,7 +32,7 @@ export default {
       //min and max date to show error message
       minDate: '',
       maxDate: '',
-      eventlist: [],
+      eventlist: {},
       blockedDays: [],
       updatedEventList: [],
       staff_id: localStorage.getItem('employeeId') || null, //consider using global user context object
@@ -40,32 +40,36 @@ export default {
   },
   methods: {
     async submitWFHRequest(payload) {
-      try {
-        payload.staff_id = this.staff_id;
-        // eventList = this.getExistingEvents()
-        const date = payload.date
+    try {
+      payload.staff_id = this.staff_id;
 
-        this.eventlist = await getExistingEvents() 
-          this.updatedEventList = this.eventlist.map(event => {
-        const date = new Date(event); // Convert string to Date object
-        
-        // Format the date as 'yyyy-mm-dd'
-        const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        
-        return formattedDate;
-      });        
-      
-      if (this.updatedEventList.includes(date)) {
-          alert('This date already exists in the events list. Please choose another date.');
-        } else {
-          await createWFHRequest(payload);
-          alert('WFH request submitted! It is now pending approval.');
-        }
-      } catch (error) {
-        console.error('Error submitting WFH request:', error);
-        alert('Failed to submit WFH request. Please try again.');
+      const date = payload.date; // Assuming payload.date is already in 'yyyy-mm-dd' format
+      this.eventObj = await getExistingEvents(); // Get list of events
+       // Format the eventObj keys (which are date strings) to 'yyyy-mm-dd'
+    this.updatedEventObj = Object.fromEntries(
+      Object.entries(this.eventObj).map(([dateString, data]) => {
+        const dateObj = new Date(dateString); // Convert the key (date) to Date object
+        const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`; // Format the date
+
+        return [formattedDate, data]; // Return the formatted date and the original data
+      })
+    );
+
+    // Now extract the keys (formatted dates) to check for conflicts
+    this.updatedEventList = Object.keys(this.updatedEventObj); // Extract all the keys (formatted dates)
+
+    // Check if the selected date is already in the formatted event list
+    if (this.updatedEventList.includes(date)) {
+      alert('This date already exists in the events list. Please choose another date.');
+    } else {
+      await createWFHRequest(payload);
+      alert('WFH request submitted! It is now pending approval.');
+    }
+  } catch (error) {
+    console.log(error.message);
+    alert('Failed to submit WFH request. Please try again.');
       }
-    },
+    }
   },
   onMounted() {
     const today = new Date();
