@@ -82,43 +82,33 @@ def create_app(test_config=None):
     @app.route('/event-dates', methods=['GET'])
     def get_unique_event_dates():
         try:
-            # Query Supabase to get distinct event dates and their descriptions
-            response = supabase.table('events').select('date, description').execute()
-
-            if response.data:
-                # Create a dictionary mapping event date to event description
-                event_dates_dict = {event['date']: event['description'] for event in response.data if event.get('date') and event.get('description')}
-                return jsonify(event_dates_dict), 200
-            else:
-                return jsonify({"error": "No event dates found"}), 404
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-        
-    @app.route('/all-events-datetimes', methods=['GET'])
-    def get_all_event_datetimes():
-        try:
-            # Query Supabase to get the event dates (assuming the column name is 'date')
-            response = supabase.table('events').select('date').execute()
+            # Query Supabase to get event_id, date, and description fields
+            response = supabase.table('events').select('event_id, date, description').execute()
 
             # Debugging: Print the response to verify what is being returned
             print(response.data)
 
             if response.data:
-                # Extract all event dates, ensuring we only include non-null dates
-                event_dates = [event.get('date') for event in response.data if event.get('date')]
+                # Create a dictionary with date as key and an array [description, event_id] as value
+                event_data_dict = {
+                    event.get('date'): [event.get('description'), event.get('event_id')]
+                    for event in response.data
+                    if event.get('event_id') and event.get('date') and event.get('description')  # Ensure non-null values
+                }
                 
-                # If the event_dates list is populated, return it, otherwise return a "not found" message
-                if event_dates:
-                    return jsonify(event_dates), 200
+                # If the event_data_dict is populated, return it, otherwise return a "not found" message
+                if event_data_dict:
+                    return jsonify(event_data_dict), 200
                 else:
-                    return jsonify({"error": "No valid event dates found"}), 404
+                    return jsonify({"error": "No valid event data found"}), 404
             else:
                 return jsonify({"error": "No events found"}), 404
         except Exception as e:
             # Log the error for further debugging
-            print(f"Error: {str(e)}")
+            print(f"Error fetching event dates: {str(e)}")
             return jsonify({"error": str(e)}), 500
-
+        
+        
     @app.route('/create-event', methods=['POST'])
     def create_event():
         try:
@@ -129,7 +119,8 @@ def create_app(test_config=None):
             date = event_data.get('date')
             empID = event_data.get('empId')  # This corresponds to employee_Staff_ID
             creatorID = event_data.get('creator')  # The creator of the event
-
+            description = event_data.get('description')
+            
             # Validate input (check if 'date', 'empID', and 'creatorID' are provided)
             if not date or not empID or not creatorID:
                 return jsonify({"error": "Missing date, empId, or creator"}), 400
@@ -139,7 +130,9 @@ def create_app(test_config=None):
 
             # Step 1: Insert the event into the 'events' table
             event_response = supabase.table('events').insert({
-                'date': date
+                'date': date,
+                'description': description
+                
             }).execute()
 
             # Check if the event was successfully inserted
@@ -174,7 +167,6 @@ def create_app(test_config=None):
             error_trace = traceback.format_exc()
             print(f"Error: {str(e)}\nTraceback: {error_trace}")
             return jsonify({"success": False, "error": str(e), "traceback": error_trace}), 500
-        
 
     # Get specific arrangement by arrangement_id
     @app.route('/arrangement/<int:arrangement_id>', methods=['GET'])
@@ -457,7 +449,39 @@ def create_app(test_config=None):
 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
-    
+        
+    @app.route('/delete-event', methods=['POST'])
+    def delete_event():
+        try:
+            # Get the JSON data from the request body
+            data = request.json
+            event_id = data.get('eventId')
+
+            # Ensure that the event ID is provided
+            if not event_id:
+                return jsonify({'success': False, 'message': 'Event ID is required'}), 400
+
+            # Log the event ID for debugging
+            print(f"Attempting to delete event with ID: {event_id}")
+            print('1')
+            # Step 1: Delete the entry in the junction table (employee_has_events)
+            junction_delete_response = supabase.table('employee_has_events').delete().eq('events_event_id', event_id).execute()
+            print('2')
+            # Check if the deletion in the junction table was successful
+            print('3')
+            # Step 2: Delete the event from the events table
+            event_delete_response = supabase.table('events').delete().eq('event_id', event_id).execute()
+            print('4')
+            # Check if the event was successfully deleted
+
+            # If both deletions are successful, return success message
+            return jsonify({'success': True, 'message': 'Event and its related records deleted successfully'}), 200
+
+        except Exception as e:
+            # Return a 500 error if something goes wrong
+            print(f"Exception occurred: {str(e)}")
+            return jsonify({'success': False, 'message': str(e)}), 500 
+           
     # Reset arrangement status from 3 to 0
     @app.route('/arrangement/test_scrum_8_reset_arrangement_status/<int:arrangement_id>', methods=['PUT'])
     def uncancel_arrangement(arrangement_id):
@@ -482,9 +506,8 @@ def create_app(test_config=None):
             return jsonify({"error": str(e)}), 500
 
     return app
-        
 
-
+            
 class employee(db.Model):
     __tablename__ = 'employee'  
     staff_id = db.Column(db.Integer, primary_key=True)

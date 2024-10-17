@@ -18,7 +18,7 @@
 import { ref, onMounted } from 'vue';
 import RequestInfo from '../components/RequestInfo.vue';
 import WFHForm from '../components/WFHForm.vue';
-import { createWFHRequest } from '@/api/api';
+import { createWFHRequest, getExistingEvents } from '../api/api';
 
 export default {
   name: 'ApplyArrangement',
@@ -32,7 +32,9 @@ export default {
       //min and max date to show error message
       minDate: '',
       maxDate: '',
+      eventlist: [],
       blockedDays: [],
+      updatedEventList: [],
       staff_id: localStorage.getItem('employeeId') || null, //consider using global user context object
     };
   },
@@ -40,8 +42,25 @@ export default {
     async submitWFHRequest(payload) {
       try {
         payload.staff_id = this.staff_id;
-        await createWFHRequest(payload);
-        alert('WFH request submitted! It is now pending approval.');
+        // eventList = this.getExistingEvents()
+        const date = payload.date
+
+        this.eventlist = await getExistingEvents() 
+          this.updatedEventList = this.eventlist.map(event => {
+        const date = new Date(event); // Convert string to Date object
+        
+        // Format the date as 'yyyy-mm-dd'
+        const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        
+        return formattedDate;
+      });        
+      
+      if (this.updatedEventList.includes(date)) {
+          alert('This date already exists in the events list. Please choose another date.');
+        } else {
+          await createWFHRequest(payload);
+          alert('WFH request submitted! It is now pending approval.');
+        }
       } catch (error) {
         console.error('Error submitting WFH request:', error);
         alert('Failed to submit WFH request. Please try again.');
