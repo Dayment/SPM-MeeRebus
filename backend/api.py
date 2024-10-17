@@ -99,8 +99,6 @@ def create_app(test_config=None):
                 # If the event_data_dict is populated, return it, otherwise return a "not found" message
                 if event_data_dict:
                     return jsonify(event_data_dict), 200
-                else:
-                    return jsonify({"error": "No valid event data found"}), 404
             else:
                 return jsonify({"error": "No events found"}), 404
         except Exception as e:
@@ -463,15 +461,11 @@ def create_app(test_config=None):
 
             # Log the event ID for debugging
             print(f"Attempting to delete event with ID: {event_id}")
-            print('1')
             # Step 1: Delete the entry in the junction table (employee_has_events)
             junction_delete_response = supabase.table('employee_has_events').delete().eq('events_event_id', event_id).execute()
-            print('2')
             # Check if the deletion in the junction table was successful
-            print('3')
             # Step 2: Delete the event from the events table
             event_delete_response = supabase.table('events').delete().eq('event_id', event_id).execute()
-            print('4')
             # Check if the event was successfully deleted
 
             # If both deletions are successful, return success message
