@@ -117,6 +117,8 @@
 </template>
 
 <script>
+import { convertFileToUrl } from '@/api/api';
+
 export default {
   name: 'WFHForm',
   props: {
@@ -143,6 +145,7 @@ export default {
       recurrenceFrequency: '',
       recurrenceEndDate: '',
       uploadedFile: null,
+      uploadedFileUrl:'' //after converting to link from supabase storage
     };
   },
   computed: {
@@ -187,13 +190,33 @@ export default {
     },
   },
   methods: {
-    handleSubmit() {
+    onFileChange(event) {
+      this.uploadedFile = event.target.files[0];
+    },
+
+    async handleSubmit() {
       const payload = {
         date: this.selectedDate,
         time: this.wfhtime, // AM, PM or Full Day
         reason: this.reason,
         requestType: this.requestType, // ad-hoc or recurring
       };
+      if(this.uploadedFile){
+      try{
+        const res = await convertFileToUrl(this.uploadedFile)
+        console.log(res,"res")
+        payload.fileUrl = res.url 
+
+
+
+      }
+      catch (error){
+        console.error("error uploading file : ",error)
+        alert("failed to upload file")
+        return;
+
+      }
+    }
 
       if (this.requestType == 'Recurring') {
         payload.recurrenceFrequency = this.recurrenceFrequency;
@@ -202,11 +225,7 @@ export default {
 
       this.$emit('submitRequest', payload);
     },
-    onFileChange(event) {
-      this.uploadedFile = event.target.files[0];
-      console.log(this.uploadedFile);
-      //turn into link here
-    },
+
   },
 };
 </script>

@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 import os
 import traceback
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename #10/10 cybersecurity
+import time
 
 
 
@@ -35,7 +37,10 @@ def create_app(test_config=None):
     
     if supabase is None:
         supabase = create_supabase_client()
-
+    
+    # helper functions
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'docx'}
 
 
     # Get specific employee
@@ -480,6 +485,35 @@ def create_app(test_config=None):
 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+    
+    @app.route('/uploadFile', methods=['POST'])
+    def upload_file():
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part in the request'}), 400
+
+        file = request.files['file']
+
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+
+        if file and allowed_file(file.filename):
+            try:
+                file_data = file.read()
+                unique_filename = f"{int(time.time())}_{secure_filename(file.filename)}"
+                
+                res = supabase.storage.from_('spm-document').upload(unique_filename, file_data)
+                # print(type(res))
+
+                # if res.get('error'):
+                #     return jsonify({'error': res['error']['message']}), 500
+
+                public_url = supabase.storage.from_('spm-document').get_public_url(unique_filename)
+
+                return jsonify({'message': 'File uploaded successfully', 'url': public_url}), 200
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        else:
+            return jsonify({'error': 'File type not allowed'}), 400
 
     return app
         
