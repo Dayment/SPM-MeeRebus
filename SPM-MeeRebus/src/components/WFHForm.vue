@@ -145,7 +145,7 @@ export default {
       recurrenceFrequency: '',
       recurrenceEndDate: '',
       uploadedFile: null,
-      uploadedFileUrl:'' //after converting to link from supabase storage
+      uploadedFileUrl: '', //after converting to link from supabase storage
     };
   },
   computed: {
@@ -201,22 +201,16 @@ export default {
         reason: this.reason,
         requestType: this.requestType, // ad-hoc or recurring
       };
-      if(this.uploadedFile){
-      try{
-        const res = await convertFileToUrl(this.uploadedFile)
-        console.log(res,"res")
-        payload.fileUrl = res.url 
-
-
-
+      if (this.uploadedFile) {
+        try {
+          const res = await convertFileToUrl(this.uploadedFile);
+          payload.fileUrl = res.url;
+        } catch (error) {
+          console.error('error uploading file : ', error);
+          alert('failed to upload file');
+          return;
+        }
       }
-      catch (error){
-        console.error("error uploading file : ",error)
-        alert("failed to upload file")
-        return;
-
-      }
-    }
 
       if (this.requestType == 'Recurring') {
         payload.recurrenceFrequency = this.recurrenceFrequency;
@@ -225,7 +219,6 @@ export default {
 
       this.$emit('submitRequest', payload);
     },
-
   },
 };
 </script>

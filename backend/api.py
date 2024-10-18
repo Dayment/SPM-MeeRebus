@@ -505,10 +505,6 @@ def create_app(test_config=None):
                 unique_filename = f"{int(time.time())}_{secure_filename(file.filename)}"
                 
                 res = supabase.storage.from_('spm-document').upload(unique_filename, file_data)
-                # print(type(res))
-
-                # if res.get('error'):
-                #     return jsonify({'error': res['error']['message']}), 500
 
                 public_url = supabase.storage.from_('spm-document').get_public_url(unique_filename)
 
