@@ -35,6 +35,18 @@
         required
       />
     </div>
+    <!-- File Upload Section -->
+    <div class="mb-3">
+      <label for="file-upload" class="form-label"
+        >Upload Supporting Document (Optional)</label
+      >
+      <input
+        type="file"
+        id="file-upload"
+        class="form-control"
+        @change="onFileChange"
+      />
+    </div>
 
     <!-- Request Type Dropdown -->
     <div class="form-group">
@@ -88,16 +100,16 @@
       v-if="selectedDate && wfhtime && reason && requestType && !invalidMessage"
     >
       <h3>Review Your Selection</h3>
-      <p>
-        <strong>Selected WFH Date and Time:</strong> {{ selectedDate }}
-        
-      </p>
+      <p><strong>Selected WFH Date and Time:</strong> {{ selectedDate }}</p>
       <p><strong>Timeslot:</strong> {{ wfhtime }}</p>
       <p><strong>Reason:</strong> {{ reason }}</p>
       <p><strong>Request Type:</strong> {{ requestType }}</p>
+      <p><strong>Supporting documents:</strong> {{ uploadedFile.name }}</p>
       <p><strong>Reccurence frequency:</strong> {{ recurrenceFrequency }}</p>
-      <p><strong>Reccuring arrangement will end on:</strong> {{ recurrenceEndDate }}</p>
-
+      <p>
+        <strong>Reccuring arrangement will end on:</strong>
+        {{ recurrenceEndDate }}
+      </p>
     </div>
 
     <button type="submit" class="btn btn-primary">Submit WFH Request</button>
@@ -105,6 +117,8 @@
 </template>
 
 <script>
+import { convertFileToUrl } from '@/api/api';
+
 export default {
   name: 'WFHForm',
   props: {
@@ -130,6 +144,8 @@ export default {
       requestType: '',
       recurrenceFrequency: '',
       recurrenceEndDate: '',
+      uploadedFile: null,
+      uploadedFileUrl: '', //after converting to link from supabase storage
     };
   },
   computed: {
@@ -166,8 +182,7 @@ export default {
         }
       }
 
-
-      return ''; 
+      return '';
     },
 
     isFormValid() {
@@ -175,19 +190,32 @@ export default {
     },
   },
   methods: {
-    handleSubmit() {
+    onFileChange(event) {
+      this.uploadedFile = event.target.files[0];
+    },
+
+    async handleSubmit() {
       const payload = {
         date: this.selectedDate,
         time: this.wfhtime, // AM, PM or Full Day
         reason: this.reason,
         requestType: this.requestType, // ad-hoc or recurring
       };
-
-      if (this.requestType == "Recurring"){
-        payload.recurrenceFrequency = this.recurrenceFrequency
-        payload.recurrenceEndDate = this.recurrenceEndDate
+      if (this.uploadedFile) {
+        try {
+          const res = await convertFileToUrl(this.uploadedFile);
+          payload.fileUrl = res.url;
+        } catch (error) {
+          console.error('error uploading file : ', error);
+          alert('failed to upload file');
+          return;
+        }
       }
-        
+
+      if (this.requestType == 'Recurring') {
+        payload.recurrenceFrequency = this.recurrenceFrequency;
+        payload.recurrenceEndDate = this.recurrenceEndDate;
+      }
 
       this.$emit('submitRequest', payload);
     },

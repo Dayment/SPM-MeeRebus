@@ -6,6 +6,8 @@ from datetime import datetime, timedelta
 import os
 import traceback
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename #10/10 cybersecurity
+import time
 
 
 
@@ -35,7 +37,10 @@ def create_app(test_config=None):
     
     if supabase is None:
         supabase = create_supabase_client()
-
+    
+    # helper functions
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'docx'}
 
 
     # Get specific employee
@@ -365,6 +370,7 @@ def create_app(test_config=None):
             wfh_time = data.get('time') 
             reason = data.get('reason')
             requestType = data.get('requestType')
+            url = data.get('fileUrl')
             
             if not staff_id or not wfh_date or not wfh_time:
                 return jsonify({"error": "Missing required fields: staff_id, date, or time."}), 400
@@ -418,6 +424,7 @@ def create_app(test_config=None):
                     "date": date.strftime('%Y-%m-%d %H:%M:%S'),  
                     "status": 0, 
                     "reason_staff":reason,
+                    "document_url":url
                     }).execute()
             elif requestType == "Adhoc":
                 result = supabase.table('arrangement').insert({
@@ -427,6 +434,7 @@ def create_app(test_config=None):
                     "date": wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S'),  
                     "status": 0, 
                     "reason_staff":reason,
+                    "document_url":url
                     }).execute()
 
             return jsonify({"message": "WFH request submitted successfully and is now pending approval."}), 201
@@ -480,6 +488,31 @@ def create_app(test_config=None):
 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+    
+    @app.route('/uploadFile', methods=['POST'])
+    def upload_file():
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file part in the request'}), 400
+
+        file = request.files['file']
+
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+
+        if file and allowed_file(file.filename):
+            try:
+                file_data = file.read()
+                unique_filename = f"{int(time.time())}_{secure_filename(file.filename)}"
+                
+                res = supabase.storage.from_('spm-document').upload(unique_filename, file_data)
+
+                public_url = supabase.storage.from_('spm-document').get_public_url(unique_filename)
+
+                return jsonify({'message': 'File uploaded successfully', 'url': public_url}), 200
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        else:
+            return jsonify({'error': 'File type not allowed'}), 400
 
     return app
         
@@ -508,6 +541,7 @@ class arrangement(db.Model):
     status = db.Column(db.Integer, nullable=False)  # 0 = Pending, 1 = Accepted, 2 = Rejected 3 = Cancelled
     reason_staff = db.Column(db.String(255), nullable=False) # Reason for applying
     reason_man = db.Column(db.String(255), nullable=True)  # Reason for rejection 
+    document_url = db.Column(db.String(255), nullable=True)  # URL of the stored file
 
 #functions
 def calculate_recurring(start_date, recurrence_frequency, end_date):
