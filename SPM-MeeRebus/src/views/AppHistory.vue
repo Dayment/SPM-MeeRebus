@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
 const arrangements = ref([]);
+const empDatas = ref([]);
 const selectedStatus = ref('');
 const startDate = ref('');
 const endDate = ref('');
@@ -26,6 +27,11 @@ onMounted(() => {
     if (storedArrangements) {
         arrangements.value = JSON.parse(storedArrangements);
         console.log(JSON.parse(storedArrangements));
+    }
+    const employeedata = localStorage.getItem('employeeData');
+    if (employeedata) {
+        empDatas.value = JSON.parse(employeedata);
+        console.log(JSON.parse(employeedata));
     }
 });
 
@@ -111,6 +117,8 @@ function formatDate(date) {
             <table class="table">
                 <thead>
                     <tr>
+                        <th>ID</th>
+                        <th>Name</th>
                         <th>Date</th>
                         <th>Status</th>
                         <th>Time</th>
@@ -122,6 +130,8 @@ function formatDate(date) {
                 <tbody>
                     <tr v-for="arrangement in filteredArrangements" :key="arrangement.arrangement_id">
                         <!-- <td>{{ new Date(arrangement.date).toLocaleString() }}</td> -->
+                        <td>{{ arrangement.staff_id }}</td>
+                        <td>{{ empDatas.staff_fname + ' ' + empDatas.staff_lname}}</td>
                         <td>{{ formatDate(arrangement.date) }}</td>
                         <td>{{ getStatusLabel(arrangement.status) }}</td>
                         <td>{{ getTimeLabel(arrangement.time) }}</td>
@@ -132,6 +142,30 @@ function formatDate(date) {
                             <button  v-if="(arrangement.status === 0 || arrangement.status === 1) && new Date(arrangement.date) >= new Date() "  @click="cancelArrangement(arrangement.arrangement_id)"  class="btn btn-danger" >
                                 Cancel Arrangement
                             </button>
+                            <!-- Button trigger modal -->
+                            <button type="button" v-if="arrangement.status === 1" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                                Withdraw Arrangement
+                            </button>
+
+                            <!-- Modal -->
+                            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">Withdrawal Reason</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                    <!-- Textbox for input -->
+                                    <textarea v-model="withdrawalReason" class="form-control" rows="3" placeholder="Enter your reason here..."></textarea>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-primary">Submit</button>
+                                    </div>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
