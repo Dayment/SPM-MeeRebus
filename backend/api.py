@@ -349,7 +349,8 @@ def create_app(test_config=None):
                         "arrangement_id": arrangement['arrangement_id'],
                         "date": arrangement['date'],
                         "employee": staff_info,
-                        "reason": arrangement.get('reason'),
+                        "reason_staff": arrangement.get('reason_staff'),
+                        "reason_man": arrangement.get('reason_man'),
                         "reporting_manager": arrangement['reporting_manager'],
                         "staff_id": arrangement['staff_id'],
                         "status": arrangement['status'],
@@ -453,7 +454,8 @@ def create_app(test_config=None):
             if arrangement_response.data:
                 # Update the status to 3 (Cancelled)
                 update_response = supabase.table('arrangement').update({
-                    "status": 3
+                    "status": 3,
+                    "reason_man": "Self cancelled / withdrawn"
                 }).eq('arrangement_id', arrangement_id).execute()
 
                 if update_response.data:
@@ -465,6 +467,71 @@ def create_app(test_config=None):
 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+        
+        
+    # For manager withdrawing / cancelling WFH
+    @app.route('/arrangement/manager/cancel/', methods=['PUT'])
+    def manager_cancel_arrangement():
+        try:
+            # Get the arrangement by its ID
+            res = request.json
+            arrangement_id = res.arrangement_id
+            rejection_reason = res.reason_man
+
+            arrangement_response = supabase.table('arrangement').select('*').eq('arrangement_id', arrangement_id).single().execute()
+
+            if arrangement_response.data:
+                # Update the status to 3 (Cancelled)
+                update_response = supabase.table('arrangement').update({
+                    "status": 3,
+                    "reason_man": rejection_reason
+                }).eq('arrangement_id', arrangement_id).execute()
+
+                if update_response.data:
+                    return jsonify({"message": "Arrangement cancelled successfully."}), 200
+                else:
+                    return jsonify({"error": "Failed to cancel the arrangement."}), 500
+            else:
+                return jsonify({"error": "Arrangement not found."}), 404
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    # For manager to get staff_id of those that are under them
+    @app.route('/manager/underlings/<int:staff_id>', methods=['GET'])
+    def get_employees_by_manager(staff_id):
+        employees_response = supabase.table('employee').select('*').eq('reporting_manager', staff_id).execute()
+
+        
+        staff_ids = [employee['staff_id'] for employee in employees_response.data]
+        arrangements_response = supabase.table('arrangement').select('*').in_('staff_id', staff_ids).execute()
+        output = []
+        if arrangements_response.data:
+            output = []
+            
+            for arrangement in arrangements_response.data:
+                # Get employee details for each arrangement
+                arrangement_staff_response = supabase.table('employee').select('*').eq('staff_id', arrangement['staff_id']).execute()
+                
+                if arrangement_staff_response.data:
+                    staff_info = arrangement_staff_response.data[0]
+                    
+                    output.append({
+                        "arrangement_id": arrangement['arrangement_id'],
+                        "date": arrangement['date'],
+                        "employee": staff_info,
+                        "reason_staff": arrangement.get('reason_staff'),
+                        "reason_man": arrangement.get('reason_man'),
+                        "reporting_manager": arrangement['reporting_manager'],
+                        "staff_id": arrangement['staff_id'],
+                        "status": arrangement['status'],
+                        "time": arrangement['time']
+                    })
+
+            
+            return jsonify(output), 200
+        else:
+            return jsonify({"error": "No arrangements found"}), 404
     
     # Reset arrangement status from 3 to 0
     @app.route('/arrangement/test_scrum_8_reset_arrangement_status/<int:arrangement_id>', methods=['PUT'])
@@ -492,7 +559,7 @@ def create_app(test_config=None):
     @app.route('/uploadFile', methods=['POST'])
     def upload_file():
         if 'file' not in request.files:
-            return jsonify({'error': 'No file part in the request'}), 400
+            return
 
         file = request.files['file']
 

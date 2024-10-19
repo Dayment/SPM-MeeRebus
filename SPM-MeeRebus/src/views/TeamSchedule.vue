@@ -93,7 +93,8 @@ const filteredWFHDetails = computed(() => {
             <th>Full Name</th>
             <th>Department</th>
             <th>Position</th>
-            <th>Reason</th>
+            <th>Application Reason</th>
+            <th>Rejection Reason</th>
           </tr>
         </thead>
         <tbody>
@@ -107,7 +108,8 @@ const filteredWFHDetails = computed(() => {
             </td>
             <td>{{ wfh.employee.dept }}</td>
             <td>{{ wfh.employee.position }}</td>
-            <td>{{ wfh.reason || 'No Reason Provided' }}</td>
+            <td>{{ wfh.reason_staff || 'No Reason Provided' }}</td>
+            <td>{{ wfh.reason_man|| 'NA' }}</td>
           </tr>
         </tbody>
       </table>

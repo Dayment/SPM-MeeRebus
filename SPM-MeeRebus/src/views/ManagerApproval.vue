@@ -23,16 +23,20 @@ const timeOptions = [
     { value: '3', label: 'Whole Day' }
 ];
 
-onMounted(() => {
-    const storedArrangements = localStorage.getItem('empArrangement');
-    if (storedArrangements) {
-        arrangements.value = JSON.parse(storedArrangements);
-        console.log(JSON.parse(storedArrangements));
-    }
+onMounted(async () => {
     const employeedata = localStorage.getItem('employeeData');
     if (employeedata) {
-        empDatas.value = JSON.parse(employeedata);
-        console.log(JSON.parse(employeedata));
+        const test = JSON.parse(employeedata)
+        const staff_id = test.staff_id
+        try {
+            const response = await axios.get(`http://127.0.0.1:5000/manager/underlings/${staff_id}`);
+            localStorage.setItem('teamArrangement', JSON.stringify(response.data));
+            const storedArrangements = localStorage.getItem('teamArrangement');
+            console.log(JSON.parse(storedArrangements));
+            arrangements.value = JSON.parse(storedArrangements);
+        }catch{
+
+        }
     }
 });
 
@@ -49,11 +53,12 @@ const filteredArrangements = computed(() => {
         const searchLower = searchQuery.value.toLowerCase();
         const matchesSearch = searchLower === '' || 
             arrangement.staff_id.toString().includes(searchLower) ||
-            empDatas.value.staff_fname?.toLowerCase().includes(searchLower) ||
-            empDatas.value.staff_lname?.toLowerCase().includes(searchLower) ||
-            empDatas.value.Dept?.toLowerCase().includes(searchLower) ||
-            empDatas.value.Position?.toLowerCase().includes(searchLower) ||
-            arrangement.reason_staff?.toLowerCase().includes(searchLower);
+            arrangement.employee.staff_fname?.toLowerCase().includes(searchLower) ||  
+            arrangement.employee.staff_lname?.toLowerCase().includes(searchLower) || 
+            arrangement.employee.dept?.toLowerCase().includes(searchLower) ||  
+            arrangement.employee.position?.toLowerCase().includes(searchLower) ||  
+            (arrangement.reason_staff && arrangement.reason_staff.toLowerCase().includes(searchLower)) ||
+            (arrangement.reason_man && arrangement.reason_man.toLowerCase().includes(searchLower));  
 
         // Combine all filters
         return matchesStatus && isAfterStartDate && isBeforeEndDate && matchesSearch;
@@ -140,6 +145,8 @@ function formatDate(date) {
                     <tr>
                         <th>ID</th>
                         <th>Name</th>
+                        <th>Department</th>
+                        <th>Position</th>
                         <th>Date</th>
                         <th>Status</th>
                         <th>Time</th>
@@ -152,7 +159,9 @@ function formatDate(date) {
                     <tr v-for="arrangement in filteredArrangements" :key="arrangement.arrangement_id">
                         <!-- <td>{{ new Date(arrangement.date).toLocaleString() }}</td> -->
                         <td>{{ arrangement.staff_id }}</td>
-                        <td>{{ empDatas.staff_fname + ' ' + empDatas.staff_lname}}</td>
+                        <td>{{ arrangement.employee.staff_fname + ' ' + arrangement.employee.staff_lname}}</td>
+                        <td>{{ arrangement.employee.dept }}</td>
+                        <td>{{ arrangement.employee.position }}</td>
                         <td>{{ formatDate(arrangement.date) }}</td>
                         <td>{{ getStatusLabel(arrangement.status) }}</td>
                         <td>{{ getTimeLabel(arrangement.time) }}</td>
@@ -160,7 +169,7 @@ function formatDate(date) {
                         <td>{{ arrangement.reason_man || 'N/A' }}</td>
                         <td>
                             <!-- Add Cancel Button for arrangements with status 0 or 1 -->
-                            <button  v-if="(arrangement.status === 0 || arrangement.status === 1) && new Date(arrangement.date) >= new Date() "  @click="cancelArrangement(arrangement.arrangement_id)"  class="btn btn-danger" >
+                            <button  v-if="(arrangement.status === 0) "  @click="cancelArrangement(arrangement.arrangement_id)"  class="btn btn-danger" >
                                 Cancel Arrangement
                             </button>
                             <!-- Button trigger modal -->
