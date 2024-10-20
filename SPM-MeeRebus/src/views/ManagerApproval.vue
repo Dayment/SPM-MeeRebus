@@ -3,11 +3,12 @@ import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
 const arrangements = ref([]);
-const empDatas = ref([]);
 const selectedStatus = ref('');
 const searchQuery = ref('');
 const startDate = ref('');
 const endDate = ref('');
+const withdrawalReason = ref('')
+const selectedArrangementId = ref(null);
 
 const statusOptions = [
     { value: '', label: 'All Statuses' },
@@ -88,18 +89,47 @@ const getTimeLabel = (time)  => {
 }
 
 
-const cancelArrangement = async (arrangementId) => {
+const approveArrangement = async (arrangementId) => {
     try {
-        const response = await axios.put(`http://localhost:5000/arrangement/cancel/${arrangementId}`);
+        const response = await axios.put(`http://localhost:5000/arrangement/approve/${arrangementId}`);
         if (response.status === 200) {
             // Update the local state to reflect the change (for demo purposes only)
             const arrangement = arrangements.value.find(a => a.arrangement_id === arrangementId);
             if (arrangement) {
-                arrangement.status = 3; // Set status to 'Cancelled/Withdrawn'
+                arrangement.status = 1; // Set status to 'Approved'
             }
         }
     } catch (error) {
-        console.error("Error while cancelling arrangement: ", error);
+        console.error("Error while approving arrangement: ", error);
+    }
+};
+
+const checkID = async (arrangementId) => {
+    selectedArrangementId.value = arrangementId;
+    console.log(selectedArrangementId.value)
+}
+
+const withdrawArrangement = async (reason) => {
+    try {
+        
+        const payload = {
+            arrangement_id: selectedArrangementId.value,
+            arrangement_reason_man: reason
+        };
+        console.log(payload.arrangement_id)
+        
+        const response = await axios.put(`http://localhost:5000/arrangement/manager/withdraw`, payload);
+        
+        if (response.status === 200) {
+            // Update the local state to reflect the change
+            const arrangement = arrangements.value.find(a => a.arrangement_id === payload.arrangement_id);
+            if (arrangement) {
+                arrangement.status = 2; 
+                arrangement.reason_man = payload.arrangement_reason_man; // Update the reason
+            }
+        }
+    } catch (error) {
+        console.error("Error while withdrawing arrangement: ", error);
     }
 };
 
@@ -168,12 +198,12 @@ function formatDate(date) {
                         <td>{{ arrangement.reason_staff || 'No Reason Provided' }}</td>
                         <td>{{ arrangement.reason_man || 'N/A' }}</td>
                         <td>
-                            <!-- Add Cancel Button for arrangements with status 0 or 1 -->
-                            <button  v-if="(arrangement.status === 0) "  @click="cancelArrangement(arrangement.arrangement_id)"  class="btn btn-danger" >
-                                Cancel Arrangement
+                            <!-- Approve for status pending -->
+                            <button  v-if="(arrangement.status === 0)" @click="approveArrangement(arrangement.arrangement_id)"  class="btn btn-primary" >
+                                Approve Arrangement
                             </button>
                             <!-- Button trigger modal -->
-                            <button type="button" v-if="arrangement.status === 1" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                            <button type="button" v-if="arrangement.status === 1 || arrangement.status === 0" @click="checkID(arrangement.arrangement_id)"  class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                 Withdraw Arrangement
                             </button>
 
@@ -191,7 +221,7 @@ function formatDate(date) {
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-primary">Submit</button>
+                                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @click="withdrawArrangement(withdrawalReason)">Submit</button>
                                     </div>
                                     </div>
                                 </div>

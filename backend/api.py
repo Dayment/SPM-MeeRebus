@@ -443,6 +443,28 @@ def create_app(test_config=None):
 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+        
+    @app.route('/arrangement/approve/<int:arrangement_id>', methods=['PUT'])
+    def approve_arrangement(arrangement_id):
+        try:
+            # Get the arrangement by its ID
+            arrangement_response = supabase.table('arrangement').select('*').eq('arrangement_id', arrangement_id).single().execute()
+
+            if arrangement_response.data:
+                # Update the status to 1 (Approved)
+                update_response = supabase.table('arrangement').update({
+                    "status": 1,
+                }).eq('arrangement_id', arrangement_id).execute()
+
+                if update_response.data:
+                    return jsonify({"message": "Arrangement approved successfully."}), 200
+                else:
+                    return jsonify({"error": "Failed to approve the arrangement."}), 500
+            else:
+                return jsonify({"error": "Arrangement not found."}), 404
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
     # Set arrangement status to 3 (Cancelled)
     @app.route('/arrangement/cancel/<int:arrangement_id>', methods=['PUT'])
@@ -470,20 +492,19 @@ def create_app(test_config=None):
         
         
     # For manager withdrawing / cancelling WFH
-    @app.route('/arrangement/manager/cancel/', methods=['PUT'])
+    @app.route('/arrangement/manager/withdraw', methods=['PUT'])
     def manager_cancel_arrangement():
-        try:
+        # try:
             # Get the arrangement by its ID
             res = request.json
-            arrangement_id = res.arrangement_id
-            rejection_reason = res.reason_man
-
+            print(res)
+            arrangement_id = res['arrangement_id']
+            rejection_reason = res['arrangement_reason_man']
             arrangement_response = supabase.table('arrangement').select('*').eq('arrangement_id', arrangement_id).single().execute()
 
             if arrangement_response.data:
-                # Update the status to 3 (Cancelled)
                 update_response = supabase.table('arrangement').update({
-                    "status": 3,
+                    "status": 2,
                     "reason_man": rejection_reason
                 }).eq('arrangement_id', arrangement_id).execute()
 
@@ -494,8 +515,9 @@ def create_app(test_config=None):
             else:
                 return jsonify({"error": "Arrangement not found."}), 404
 
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+        # except Exception as e:
+        #     return jsonify({"error": str(e)}), 500
+        
         
     # For manager to get staff_id of those that are under them
     @app.route('/manager/underlings/<int:staff_id>', methods=['GET'])
