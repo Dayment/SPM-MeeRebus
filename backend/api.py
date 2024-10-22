@@ -548,7 +548,7 @@ def create_app(test_config=None):
                         employee_name = employee_response.data['staff_fname']
                         
                         # Send email notification to employee about approval
-                        msg = Message("WFH Application Approved",
+                        msg = Message("WFH Application Cancelled",
                                     sender="notificationsallinone@gmail.com",
                                     recipients=[employee_email])
                         msg.body = f"Dear {employee_name},\n\nYour WFH application {arrangement_id} has been cancelled due to: \nSelf cancellation / withdrawal"
