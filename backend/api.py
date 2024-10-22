@@ -503,6 +503,19 @@ def create_app(test_config=None):
                 }).eq('arrangement_id', arrangement_id).execute()
 
                 if update_response.data:
+                    employee_id = arrangement_response.data['staff_id']
+                    employee_response = supabase.table('employee').select('email, staff_fname').eq('staff_id', employee_id).single().execute()
+
+                    if employee_response.data:
+                        employee_email = employee_response.data['email']
+                        employee_name = employee_response.data['staff_fname']
+                        
+                        # Send email notification to employee about approval
+                        msg = Message("WFH Application Approved",
+                                    sender="notificationsallinone@gmail.com",
+                                    recipients=[employee_email])
+                        msg.body = f"Dear {employee_name},\n\nYour WFH application {arrangement_id} has been approved."
+                        mail.send(msg)
                     return jsonify({"message": "Arrangement approved successfully."}), 200
                 else:
                     return jsonify({"error": "Failed to approve the arrangement."}), 500
@@ -527,6 +540,20 @@ def create_app(test_config=None):
                 }).eq('arrangement_id', arrangement_id).execute()
 
                 if update_response.data:
+                    employee_id = arrangement_response.data['staff_id']
+                    employee_response = supabase.table('employee').select('email, staff_fname').eq('staff_id', employee_id).single().execute()
+
+                    if employee_response.data:
+                        employee_email = employee_response.data['email']
+                        employee_name = employee_response.data['staff_fname']
+                        
+                        # Send email notification to employee about approval
+                        msg = Message("WFH Application Approved",
+                                    sender="notificationsallinone@gmail.com",
+                                    recipients=[employee_email])
+                        msg.body = f"Dear {employee_name},\n\nYour WFH application {arrangement_id} has been cancelled due to: \nSelf cancellation / withdrawal"
+                        mail.send(msg)
+                        
                     return jsonify({"message": "Arrangement cancelled successfully."}), 200
                 else:
                     return jsonify({"error": "Failed to cancel the arrangement."}), 500
@@ -555,6 +582,19 @@ def create_app(test_config=None):
                 }).eq('arrangement_id', arrangement_id).execute()
 
                 if update_response.data:
+                    employee_id = arrangement_response.data['staff_id']
+                    employee_response = supabase.table('employee').select('email, staff_fname').eq('staff_id', employee_id).single().execute()
+
+                    if employee_response.data:
+                        employee_email = employee_response.data['email']
+                        employee_name = employee_response.data['staff_fname']
+                        
+                        # Send email notification to employee about approval
+                        msg = Message("WFH Application Withdrawn/Rejected",
+                                    sender="notificationsallinone@gmail.com",
+                                    recipients=[employee_email])
+                        msg.body = f"Dear {employee_name},\n\nYour WFH application {arrangement_id} has been withdrawn/rejected due to: \n {rejection_reason}"
+                        mail.send(msg)
                     return jsonify({"message": "Arrangement cancelled successfully."}), 200
                 else:
                     return jsonify({"error": "Failed to cancel the arrangement."}), 500
