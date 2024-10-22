@@ -25,7 +25,7 @@ def test_navigation(browser, url):
     
     # Find the input element by id and type in the employee ID
     emp_id_input = browser.find_element(By.ID, "empId")
-    emp_id_input.send_keys("150065")
+    emp_id_input.send_keys("130002")
 
     # Find the Login button by class name and click it
     login_button = browser.find_element(By.CSS_SELECTOR, "button.btn.btn-primary.btn-block")
@@ -34,6 +34,27 @@ def test_navigation(browser, url):
     # Add a wait to ensure the page is loaded after login
     WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "calendar-container")))
     print("Login successful.")
+
+    # Navigate to "Company Schedule"
+    try:
+        company_schedule_link = WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//a[@class='nav-link' and @href='/company']"))
+        )
+        company_schedule_link.click()
+        print("Navigated to Company Schedule.")
+    except TimeoutException:
+        print("Company Schedule link not found.")
+        return
+
+    # Check for "WFH Arrangements" within the table container
+    try:
+        wfh_arrangements_header = WebDriverWait(browser, 10).until(
+            EC.presence_of_element_located((By.XPATH, "//div[@class='table-container']//h2[contains(text(), 'WFH Arrangements')]"))
+        )
+        print("WFH Arrangements found.")
+    except TimeoutException:
+        print("WFH Arrangements not found.")
+        return
 
     # Wait for a bit
     time.sleep(2)

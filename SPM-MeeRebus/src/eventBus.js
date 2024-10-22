@@ -3,7 +3,8 @@ import { reactive } from 'vue';
 const eventBus = reactive({
   isLoggedIn: false,
   isHR: false,
-  isDir: false
+  isDir: false,
+  isManager: false
 });
 export default eventBus;
 

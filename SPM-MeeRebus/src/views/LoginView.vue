@@ -44,11 +44,14 @@ export default {
                 // await this.checkEmployeeRole(); 
 
                 const employeeData = JSON.parse(localStorage.getItem('employeeData'));
-                if (employeeData && employeeData.role === 1 && employeeData.position != "Director") {
+                if (employeeData && employeeData.role === 1) {
                     eventBus.isHR = true; 
                 }
-                if (employeeData && employeeData.position === "Director"){
+                if (employeeData && employeeData.position === "Director" || employeeData.position === "MD"){
                     eventBus.isDir = true;
+                }
+                if  (employeeData && employeeData.role === 3) {
+                    eventBus.isManager = true; 
                 }
 
 
@@ -63,17 +66,57 @@ export default {
                 localStorage.setItem('employeeData', JSON.stringify(response.data));
                 console.log(response.data);
                 
-                if ((response.data.role == 1 || response.data.position == "MD") && response.data.position != "Director") {
+                // if ((response.data.role == 1 || response.data.position == "MD") && response.data.position != "Director") {
+                //     // Only if HR, get all the arrangement data
+                //     eventBus.isHR = true; 
+                //     localStorage.setItem('isHR', true);
+
+                //     await this.getArrangementData();
+                    
+                //     await this.getOwnUnderlingArrangementData();
+
+                //     // Get their own arrangement as well
+                //     await this.getOwnArrangementData(response.data.staff_id)
+                // }else if (response.data.role == 3 && response.data.position == "Director"){
+                //     eventBus.isDir = true; 
+                //     localStorage.setItem('isDir', true);
+                    
+                //     await this.getOwnUnderlingArrangementData();
+
+                // }else if( response.data.role == 3 && response.data.position == "Sale Manager" || response.data.position == "Finance Manager"){
+                //     await this.getOwnUnderlingArrangementData();
+                //     await this.getOwnArrangementData(response.data.staff_id);
+                // }else{
+                //     // Get own WFH arrangment
+                //     await this.getOwnArrangementData(response.data.staff_id)
+                // }
+
+                if (response.data.role == 1 && response.data.position != "MD" && response.data.position != "Director") {
                     // Only if HR, get all the arrangement data
                     eventBus.isHR = true; 
                     localStorage.setItem('isHR', true);
 
                     await this.getArrangementData();
+                    
+                    await this.getOwnUnderlingData(response.data.staff_id);
+
                     // Get their own arrangement as well
                     await this.getOwnArrangementData(response.data.staff_id)
-                }else if (response.data.role == 3 || response.data.position == "Director"){
+                }else if (response.data.role == 1 && response.data.position == "Director" || response.data.position == "MD"){
+                    eventBus.isHR = true; 
+                    localStorage.setItem('isHR', true);
                     eventBus.isDir = true; 
                     localStorage.setItem('isDir', true);
+                    
+                    await this.getOwnUnderlingArrangementData();
+
+                }else if( response.data.role == 3 ){
+
+                    eventBus.isManager = true; 
+                    localStorage.setItem('isManager', true);
+
+                    await this.getOwnUnderlingData(response.data.staff_id);
+                    await this.getOwnArrangementData(response.data.staff_id);
                 }else{
                     // Get own WFH arrangment
                     await this.getOwnArrangementData(response.data.staff_id)
@@ -104,6 +147,15 @@ export default {
             try {
                 const response = await axios.get(`http://127.0.0.1:5000/arrangement/emp/${staff_id}`);
                 localStorage.setItem('empArrangement', JSON.stringify(response.data));
+                console.log(response.data);  
+            } catch (error) {
+                console.log(error);
+            }
+        },
+        async getOwnUnderlingData(staff_id) {
+            try {
+                const response = await axios.get(`http://127.0.0.1:5000//manager/underlings/${staff_id}`);
+                localStorage.setItem('teamData', JSON.stringify(response.data));
                 console.log(response.data);  
             } catch (error) {
                 console.log(error);

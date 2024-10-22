@@ -3,10 +3,12 @@ import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
 const arrangements = ref([]);
-const empDatas = ref([]);
 const selectedStatus = ref('');
+const searchQuery = ref('');
 const startDate = ref('');
 const endDate = ref('');
+const withdrawalReason = ref('')
+const selectedArrangementId = ref(null);
 
 const statusOptions = [
     { value: '', label: 'All Statuses' },
@@ -22,30 +24,16 @@ const timeOptions = [
     { value: '3', label: 'Whole Day' }
 ];
 
-// onMounted(() => {
-    // const storedArrangements = localStorage.getItem('empArrangement');
-    // if (storedArrangements) {
-    //     arrangements.value = JSON.parse(storedArrangements);
-    //     console.log(JSON.parse(storedArrangements));
-    // }
-    // const employeedata = localStorage.getItem('employeeData');
-    // if (employeedata) {
-    //     empDatas.value = JSON.parse(employeedata);
-    //     console.log(JSON.parse(employeedata));
-    // }
-
-// });
-
 onMounted(async () => {
-    
     const employeedata = localStorage.getItem('employeeData');
     if (employeedata) {
         const test = JSON.parse(employeedata)
         const staff_id = test.staff_id
         try {
-            const response = await axios.get(`http://127.0.0.1:5000/arrangement/emp/${staff_id}`);
-            localStorage.setItem('empArrangement', JSON.stringify(response.data));
-            const storedArrangements = localStorage.getItem('empArrangement');
+            const response = await axios.get(`http://127.0.0.1:5000/manager/underlings/${staff_id}`);
+            localStorage.setItem('teamArrangement', JSON.stringify(response.data));
+            const storedArrangements = localStorage.getItem('teamArrangement');
+            console.log(JSON.parse(storedArrangements));
             arrangements.value = JSON.parse(storedArrangements);
         }catch{
 
@@ -53,20 +41,32 @@ onMounted(async () => {
     }
 });
 
-
 const filteredArrangements = computed(() => {
-    const filtered = arrangements.value.filter(arrangement => {
+    return arrangements.value.filter(arrangement => {
+        // Status filter
         const matchesStatus = selectedStatus.value === '' || arrangement.status.toString() === selectedStatus.value;
+
+        // Date filter
         const arrangementDate = new Date(arrangement.date);
         const isAfterStartDate = !startDate.value || arrangementDate >= new Date(startDate.value);
         const isBeforeEndDate = !endDate.value || arrangementDate <= new Date(endDate.value);
-        
-        return matchesStatus && isAfterStartDate && isBeforeEndDate;
-    });
+        // Search filter
+        const searchLower = searchQuery.value.toLowerCase();
+        const matchesSearch = searchLower === '' || 
+            arrangement.staff_id.toString().includes(searchLower) ||
+            arrangement.employee.staff_fname?.toLowerCase().includes(searchLower) ||  
+            arrangement.employee.staff_lname?.toLowerCase().includes(searchLower) || 
+            arrangement.employee.dept?.toLowerCase().includes(searchLower) ||  
+            arrangement.employee.position?.toLowerCase().includes(searchLower) ||  
+            (arrangement.reason_staff && arrangement.reason_staff.toLowerCase().includes(searchLower)) ||
+            (arrangement.reason_man && arrangement.reason_man.toLowerCase().includes(searchLower));  
 
-    // Sort the filtered arrangements by date descending
-    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Combine all filters
+        return matchesStatus && isAfterStartDate && isBeforeEndDate && matchesSearch;
+    }).sort((a, b) => new Date(b.date) - new Date(a.date));
 });
+
+
 
 const getStatusLabel = (status) => {
     const statusString = status.toString();
@@ -89,18 +89,47 @@ const getTimeLabel = (time)  => {
 }
 
 
-const cancelArrangement = async (arrangementId) => {
+const approveArrangement = async (arrangementId) => {
     try {
-        const response = await axios.put(`http://localhost:5000/arrangement/cancel/${arrangementId}`);
+        const response = await axios.put(`http://localhost:5000/arrangement/approve/${arrangementId}`);
         if (response.status === 200) {
             // Update the local state to reflect the change (for demo purposes only)
             const arrangement = arrangements.value.find(a => a.arrangement_id === arrangementId);
             if (arrangement) {
-                arrangement.status = 3; // Set status to 'Cancelled/Withdrawn'
+                arrangement.status = 1; // Set status to 'Approved'
             }
         }
     } catch (error) {
-        console.error("Error while cancelling arrangement: ", error);
+        console.error("Error while approving arrangement: ", error);
+    }
+};
+
+const checkID = async (arrangementId) => {
+    selectedArrangementId.value = arrangementId;
+    console.log(selectedArrangementId.value)
+}
+
+const withdrawArrangement = async (reason) => {
+    try {
+        
+        const payload = {
+            arrangement_id: selectedArrangementId.value,
+            arrangement_reason_man: reason
+        };
+        console.log(payload.arrangement_id)
+        
+        const response = await axios.put(`http://localhost:5000/arrangement/manager/withdraw`, payload);
+        
+        if (response.status === 200) {
+            // Update the local state to reflect the change
+            const arrangement = arrangements.value.find(a => a.arrangement_id === payload.arrangement_id);
+            if (arrangement) {
+                arrangement.status = 2; 
+                arrangement.reason_man = payload.arrangement_reason_man; // Update the reason
+            }
+        }
+    } catch (error) {
+        console.error("Error while withdrawing arrangement: ", error);
     }
 };
 
@@ -116,6 +145,14 @@ function formatDate(date) {
 
 <template>
     <div class="container mt-5">
+        <div class = "row justify-content-center mb-4">
+            <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search by name, department, position, or reason"
+        class="filter-input-search"
+            />
+        </div>
         <div class="row justify-content-center mb-4">
             <div class="col-md-4">
                 <select class="form-select" v-model="selectedStatus">
@@ -136,8 +173,10 @@ function formatDate(date) {
             <table class="table">
                 <thead>
                     <tr>
-                        <!-- <th>ID</th> -->
-                        <!-- <th>Name</th> -->
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Position</th>
                         <th>Date</th>
                         <th>Status</th>
                         <th>Time</th>
@@ -149,28 +188,27 @@ function formatDate(date) {
                 <tbody>
                     <tr v-for="arrangement in filteredArrangements" :key="arrangement.arrangement_id">
                         <!-- <td>{{ new Date(arrangement.date).toLocaleString() }}</td> -->
-                        <!-- <td>{{ arrangement.staff_id }}</td>
-                        <td>{{ empDatas.staff_fname + ' ' + empDatas.staff_lname}}</td> -->
+                        <td>{{ arrangement.staff_id }}</td>
+                        <td>{{ arrangement.employee.staff_fname + ' ' + arrangement.employee.staff_lname}}</td>
+                        <td>{{ arrangement.employee.dept }}</td>
+                        <td>{{ arrangement.employee.position }}</td>
                         <td>{{ formatDate(arrangement.date) }}</td>
                         <td>{{ getStatusLabel(arrangement.status) }}</td>
                         <td>{{ getTimeLabel(arrangement.time) }}</td>
                         <td>{{ arrangement.reason_staff || 'No Reason Provided' }}</td>
                         <td>{{ arrangement.reason_man || 'N/A' }}</td>
                         <td>
-                            <!-- Add Cancel Button for arrangements with status 0 or 1 -->
-                            <button  v-if="(arrangement.status === 0)"  @click="cancelArrangement(arrangement.arrangement_id)"  class="btn btn-danger" >
-                                Cancel Arrangement
-                            </button>
-                            <button  v-if="(arrangement.status === 1)"  @click="cancelArrangement(arrangement.arrangement_id)"  class="btn btn-danger" >
-                                Withdraw Arrangement
+                            <!-- Approve for status pending -->
+                            <button  v-if="(arrangement.status === 0)" @click="approveArrangement(arrangement.arrangement_id)"  class="btn btn-primary" >
+                                Approve Arrangement
                             </button>
                             <!-- Button trigger modal -->
-                            <!-- <button type="button" v-if="arrangement.status === 1" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                            <button type="button" v-if="arrangement.status === 1 || arrangement.status === 0" @click="checkID(arrangement.arrangement_id)"  class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">
                                 Withdraw Arrangement
-                            </button> -->
+                            </button>
 
                             <!-- Modal -->
-                            <!-- <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                     <div class="modal-header">
@@ -178,16 +216,16 @@ function formatDate(date) {
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                    Textbox for input
+                                    <!-- Textbox for input -->
                                     <textarea v-model="withdrawalReason" class="form-control" rows="3" placeholder="Enter your reason here..."></textarea>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="button" class="btn btn-primary">Submit</button>
+                                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @click="withdrawArrangement(withdrawalReason)">Submit</button>
                                     </div>
                                     </div>
                                 </div>
-                            </div> -->
+                            </div>
                         </td>
                     </tr>
                 </tbody>

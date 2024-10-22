@@ -81,13 +81,14 @@ const filteredWFHDetails = computed(() => {
       (!endDate.value || wfhDate <= new Date(endDate.value));
 
     const matchesTeamAndSubTeam = () => {
-      if (selectedTeam.value === 'All') {
+      const selectedTeamLower = selectedTeam.value.toLowerCase();
+      if (selectedTeamLower === 'all') {
         return true; // Show all arrangements when 'All' is selected
-      } else if (selectedTeam.value === 'System Solutioning') {
+      } else if (selectedTeamLower === 'system solutioning') {
         return dept.includes('system solutioning') && position.includes(selectedsyssTeam.value.toLowerCase());
-      } else if (selectedTeam.value === 'Engineering') {
+      } else if (selectedTeamLower === 'engineering') {
         return dept.includes('engineering') && position.includes(selectedengTeam.value.toLowerCase());
-      } else if (selectedTeam.value === 'HR') {
+      } else if (selectedTeamLower === 'hr') {
         return dept.includes('hr') && position.includes(selectedhrTeam.value.toLowerCase());
       } else {
         return dept.includes(selectedTeam.value.toLowerCase());

@@ -6,6 +6,9 @@ from datetime import datetime, timedelta
 import os
 import traceback
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename #10/10 cybersecurity
+import time
+from flask_mail import Mail, Message
 
 
 
@@ -31,11 +34,47 @@ def create_app(test_config=None):
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    # mail server initialization
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 465
+    app.config['MAIL_USERNAME'] = os.getenv("notification_email")
+    app.config['MAIL_PASSWORD'] = os.getenv("notification_password")
+    app.config['MAIL_USE_TLS'] = False
+    app.config['MAIL_USE_SSL'] = True
+
+    mail = Mail(app)
+
     db.init_app(app)
     
     if supabase is None:
         supabase = create_supabase_client()
+    
+    # helper functions
+    def allowed_file(filename):
+        return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'docx'}
+    
+    def send_wfh_notification(employee_email, manager_email, employee_name):
+        # email to Manager
+        try:
+            msg_to_manager = Message("WFH Application Submitted",
+                                    sender=os.getenv("notification_email"),
+                                    recipients=[manager_email])
+            msg_to_manager.body = f"Dear Manager,\n\nEmployee {employee_name} has submitted a WFH application."
+            mail.send(msg_to_manager)
+            print(f"Email sent to manager {manager_email}")
+        except Exception as e:
+            print(f"Failed to send email to manager: {str(e)}")
 
+        # email to Employee
+        try:
+            msg_to_employee = Message("WFH Application Confirmation",
+                                    sender=os.getenv("notification_email"),
+                                    recipients=[employee_email])
+            msg_to_employee.body = f"Dear {employee_name},\n\nYour WFH application has been successfully submitted and is pending approval."
+            mail.send(msg_to_employee)
+            print(f"Email sent to employee {employee_email}")
+        except Exception as e:
+            print(f"Failed to send email to employee: {str(e)}")
 
 
     # Get specific employee
@@ -335,7 +374,8 @@ def create_app(test_config=None):
                         "arrangement_id": arrangement['arrangement_id'],
                         "date": arrangement['date'],
                         "employee": staff_info,
-                        "reason": arrangement.get('reason'),
+                        "reason_staff": arrangement.get('reason_staff'),
+                        "reason_man": arrangement.get('reason_man'),
                         "reporting_manager": arrangement['reporting_manager'],
                         "staff_id": arrangement['staff_id'],
                         "status": arrangement['status'],
@@ -356,27 +396,27 @@ def create_app(test_config=None):
             wfh_time = data.get('time') 
             reason = data.get('reason')
             requestType = data.get('requestType')
+            url = data.get('fileUrl')
             
             if not staff_id or not wfh_date or not wfh_time:
                 return jsonify({"error": "Missing required fields: staff_id, date, or time."}), 400
+            
             timestamp_hour = ""
             time = 0
             if wfh_time == 'AM':
                 timestamp_hour = "09:00"
-                time=1
-            elif wfh_time=="Full Day":
+                time = 1
+            elif wfh_time == "Full Day":
                 timestamp_hour = "09:00"
-                time=3
+                time = 3
             else:
                 timestamp_hour = "14:00"
                 time = 2
             
-            #implement blocked days
+            # todo: implement blocked days 
             blocked_days = ['2024-12-25 00:00:00', '2024-01-01 00:00:00'] 
-
             wfh_date_obj = datetime.strptime(f"{wfh_date} {timestamp_hour}:00", "%Y-%m-%d %H:%M:%S")
 
-            
             today = datetime.now()
             if wfh_date_obj < today:
                 return jsonify({"error": "The selected date is in the past."}), 400
@@ -384,44 +424,94 @@ def create_app(test_config=None):
             if wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S') in blocked_days:
                 return jsonify({"error": "The selected day is blocked off by HR or management."}), 400
             
-            # get employee reporting manager
-            employee_data_res = supabase.table('employee').select('reporting_manager').eq('staff_id', staff_id).single().execute()
+            # Get employee's reporting manager
+            employee_data_res = supabase.table('employee').select('reporting_manager', 'email', 'staff_fname', 'staff_lname').eq('staff_id', staff_id).single().execute()
             if employee_data_res.data:
                 reporting_manager = employee_data_res.data['reporting_manager']
+                employee_email = employee_data_res.data['email']
+                employee_name = f"{employee_data_res.data['staff_fname']} {employee_data_res.data['staff_lname']}"
             else:
-                reporting_manager = None
+                return jsonify({"error": "Employee not found."}), 404
 
+            # Get manager email
+            manager_data_res = supabase.table('employee').select('email').eq('staff_id', reporting_manager).single().execute()
+            if manager_data_res.data:
+                manager_email = manager_data_res.data['email']
+            else:
+                manager_email = None
+
+            # Recurring request logic
             if requestType == "Recurring":
                 recurrence_frequency = data.get("recurrenceFrequency")
                 recurrence_end_date = data.get("recurrenceEndDate")
 
                 if not recurrence_frequency or not recurrence_end_date:
-                    return jsonify({"error": "For recurring request, please define frequency and end date."})
-            
+                    return jsonify({"error": "For recurring requests, please define frequency and end date."}), 400
+                
                 recurrence_end_date_obj = datetime.strptime(f"{recurrence_end_date} 23:59:59", "%Y-%m-%d %H:%M:%S")
-
                 recurring_dates = calculate_recurring(wfh_date_obj, recurrence_frequency, recurrence_end_date_obj)
+                
                 for date in recurring_dates:
-                    result = supabase.table('arrangement').insert({
-                    "staff_id": staff_id,
-                    "reporting_manager": reporting_manager,  
-                    "time": time,
-                    "date": date.strftime('%Y-%m-%d %H:%M:%S'),  
-                    "status": 0, 
-                    "reason_staff":reason,
+                    supabase.table('arrangement').insert({
+                        "staff_id": staff_id,
+                        "reporting_manager": reporting_manager,  
+                        "time": time,
+                        "date": date.strftime('%Y-%m-%d %H:%M:%S'),  
+                        "status": 0,  # Pending
+                        "reason_staff": reason,
+                        "document_url": url
                     }).execute()
             elif requestType == "Adhoc":
-                result = supabase.table('arrangement').insert({
+                supabase.table('arrangement').insert({
                     "staff_id": staff_id,
                     "reporting_manager": reporting_manager,  
                     "time": time,
                     "date": wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S'),  
-                    "status": 0, 
-                    "reason_staff":reason,
-                    }).execute()
+                    "status": 0,  # Pending
+                    "reason_staff": reason,
+                    "document_url": url
+                }).execute()
+
+            # Send notification emails after successful submission
+            if manager_email and employee_email:
+                send_wfh_notification(employee_email, manager_email, employee_name)
 
             return jsonify({"message": "WFH request submitted successfully and is now pending approval."}), 201
-            
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    @app.route('/arrangement/approve/<int:arrangement_id>', methods=['PUT'])
+    def approve_arrangement(arrangement_id):
+        try:
+            # Get the arrangement by its ID
+            arrangement_response = supabase.table('arrangement').select('*').eq('arrangement_id', arrangement_id).single().execute()
+
+            if arrangement_response.data:
+                # Update the status to 1 (Approved)
+                update_response = supabase.table('arrangement').update({
+                    "status": 1,
+                }).eq('arrangement_id', arrangement_id).execute()
+
+                if update_response.data:
+                    employee_id = arrangement_response.data['staff_id']
+                    employee_response = supabase.table('employee').select('email, staff_fname').eq('staff_id', employee_id).single().execute()
+
+                    if employee_response.data:
+                        employee_email = employee_response.data['email']
+                        employee_name = employee_response.data['staff_fname']
+                        
+                        # Send email notification to employee about approval
+                        msg = Message("WFH Application Approved",
+                                    sender="notificationsallinone@gmail.com",
+                                    recipients=[employee_email])
+                        msg.body = f"Dear {employee_name},\n\nYour WFH application {arrangement_id} has been approved."
+                        mail.send(msg)
+                    return jsonify({"message": "Arrangement approved successfully."}), 200
+                else:
+                    return jsonify({"error": "Failed to approve the arrangement."}), 500
+            else:
+                return jsonify({"error": "Arrangement not found."}), 404
 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
@@ -436,10 +526,25 @@ def create_app(test_config=None):
             if arrangement_response.data:
                 # Update the status to 3 (Cancelled)
                 update_response = supabase.table('arrangement').update({
-                    "status": 3
+                    "status": 3,
+                    "reason_man": "Self cancelled / withdrawn"
                 }).eq('arrangement_id', arrangement_id).execute()
 
                 if update_response.data:
+                    employee_id = arrangement_response.data['staff_id']
+                    employee_response = supabase.table('employee').select('email, staff_fname').eq('staff_id', employee_id).single().execute()
+
+                    if employee_response.data:
+                        employee_email = employee_response.data['email']
+                        employee_name = employee_response.data['staff_fname']
+                        
+                        # Send email notification to employee about approval
+                        msg = Message("WFH Application Cancelled",
+                                    sender="notificationsallinone@gmail.com",
+                                    recipients=[employee_email])
+                        msg.body = f"Dear {employee_name},\n\nYour WFH application {arrangement_id} has been cancelled due to: \nSelf cancellation / withdrawal"
+                        mail.send(msg)
+                        
                     return jsonify({"message": "Arrangement cancelled successfully."}), 200
                 else:
                     return jsonify({"error": "Failed to cancel the arrangement."}), 500
@@ -449,6 +554,7 @@ def create_app(test_config=None):
         except Exception as e:
             return jsonify({"error": str(e)}), 500
         
+
     @app.route('/delete-event', methods=['POST'])
     def delete_event():
         try:
@@ -477,6 +583,86 @@ def create_app(test_config=None):
             print(f"Exception occurred: {str(e)}")
             return jsonify({'success': False, 'message': str(e)}), 500 
            
+
+        
+    # For manager withdrawing / cancelling WFH
+    @app.route('/arrangement/manager/withdraw', methods=['PUT'])
+    def manager_cancel_arrangement():
+        # try:
+            # Get the arrangement by its ID
+            res = request.json
+            print(res)
+            arrangement_id = res['arrangement_id']
+            rejection_reason = res['arrangement_reason_man']
+            arrangement_response = supabase.table('arrangement').select('*').eq('arrangement_id', arrangement_id).single().execute()
+
+            if arrangement_response.data:
+                update_response = supabase.table('arrangement').update({
+                    "status": 2,
+                    "reason_man": rejection_reason
+                }).eq('arrangement_id', arrangement_id).execute()
+
+                if update_response.data:
+                    employee_id = arrangement_response.data['staff_id']
+                    employee_response = supabase.table('employee').select('email, staff_fname').eq('staff_id', employee_id).single().execute()
+
+                    if employee_response.data:
+                        employee_email = employee_response.data['email']
+                        employee_name = employee_response.data['staff_fname']
+                        
+                        # Send email notification to employee about approval
+                        msg = Message("WFH Application Withdrawn/Rejected",
+                                    sender="notificationsallinone@gmail.com",
+                                    recipients=[employee_email])
+                        msg.body = f"Dear {employee_name},\n\nYour WFH application {arrangement_id} has been withdrawn/rejected due to: \n {rejection_reason}"
+                        mail.send(msg)
+                    return jsonify({"message": "Arrangement cancelled successfully."}), 200
+                else:
+                    return jsonify({"error": "Failed to cancel the arrangement."}), 500
+            else:
+                return jsonify({"error": "Arrangement not found."}), 404
+
+        # except Exception as e:
+        #     return jsonify({"error": str(e)}), 500
+        
+        
+    # For manager to get staff_id of those that are under them
+    @app.route('/manager/underlings/<int:staff_id>', methods=['GET'])
+    def get_employees_by_manager(staff_id):
+        employees_response = supabase.table('employee').select('*').eq('reporting_manager', staff_id).execute()
+
+        
+        staff_ids = [employee['staff_id'] for employee in employees_response.data]
+        arrangements_response = supabase.table('arrangement').select('*').in_('staff_id', staff_ids).execute()
+        output = []
+        if arrangements_response.data:
+            output = []
+            
+            for arrangement in arrangements_response.data:
+                # Get employee details for each arrangement
+                arrangement_staff_response = supabase.table('employee').select('*').eq('staff_id', arrangement['staff_id']).execute()
+                
+                if arrangement_staff_response.data:
+                    staff_info = arrangement_staff_response.data[0]
+                    
+                    output.append({
+                        "arrangement_id": arrangement['arrangement_id'],
+                        "date": arrangement['date'],
+                        "employee": staff_info,
+                        "reason_staff": arrangement.get('reason_staff'),
+                        "reason_man": arrangement.get('reason_man'),
+                        "reporting_manager": arrangement['reporting_manager'],
+                        "staff_id": arrangement['staff_id'],
+                        "status": arrangement['status'],
+                        "time": arrangement['time']
+                    })
+
+            
+            return jsonify(output), 200
+        else:
+            return jsonify({"error": "No arrangements found"}), 404
+    
+
     # Reset arrangement status from 3 to 0
     @app.route('/arrangement/test_scrum_8_reset_arrangement_status/<int:arrangement_id>', methods=['PUT'])
     def uncancel_arrangement(arrangement_id):
@@ -499,6 +685,31 @@ def create_app(test_config=None):
 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+    
+    @app.route('/uploadFile', methods=['POST'])
+    def upload_file():
+        if 'file' not in request.files:
+            return
+
+        file = request.files['file']
+
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+
+        if file and allowed_file(file.filename):
+            try:
+                file_data = file.read()
+                unique_filename = f"{int(time.time())}_{secure_filename(file.filename)}"
+                
+                res = supabase.storage.from_('spm-document').upload(unique_filename, file_data)
+
+                public_url = supabase.storage.from_('spm-document').get_public_url(unique_filename)
+
+                return jsonify({'message': 'File uploaded successfully', 'url': public_url}), 200
+            except Exception as e:
+                return jsonify({'error': str(e)}), 500
+        else:
+            return jsonify({'error': 'File type not allowed'}), 400
 
     return app
 
@@ -526,6 +737,7 @@ class arrangement(db.Model):
     status = db.Column(db.Integer, nullable=False)  # 0 = Pending, 1 = Accepted, 2 = Rejected 3 = Cancelled
     reason_staff = db.Column(db.String(255), nullable=False) # Reason for applying
     reason_man = db.Column(db.String(255), nullable=True)  # Reason for rejection 
+    document_url = db.Column(db.String(255), nullable=True)  # URL of the stored file
 
 #functions
 def calculate_recurring(start_date, recurrence_frequency, end_date):

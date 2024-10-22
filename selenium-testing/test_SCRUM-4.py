@@ -42,7 +42,7 @@ try:
 
     # 6) Find the row with <td>11/1/2024, 9:00:00 AM</td> and get the Cancel button
     arrangement_row = WebDriverWait(browser, 10).until(
-        EC.presence_of_element_located((By.XPATH, "//td[text()='11/1/2024, 9:00:00 AM']/.."))
+        EC.presence_of_element_located((By.XPATH, "//td[text()='2024-11-01']/.."))
     )
 
     cancel_button = arrangement_row.find_element(By.XPATH, ".//button[contains(@class, 'btn-danger')]")
