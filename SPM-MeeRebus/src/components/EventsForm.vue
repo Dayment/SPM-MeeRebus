@@ -58,12 +58,19 @@
           <tr>
             <th>Date</th> 
             <th>Event Description</th>
+            <th>Event ID</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(description, date) in apiDateDict" :key="date">
             <td>{{ date }}</td>
-            <td>{{ description }}</td>
+            <td>{{ description[0]}}</td>
+            <td>{{ description[1]}}</td>
+
+            <td>
+              <!-- X Button to Remove Event -->
+              <button @click="removeEvent(date)" class="btn btn-danger btn-sm">X</button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -80,7 +87,7 @@
   
   <script>
   import axios from 'axios';
-  import { getAllDepartments, getAllDatesWithEvents, getExistingEvents } from '../api/api';
+  import { getAllDepartments, getAllDatesWithEvents, getExistingEvents, deleteEvent } from '../api/api';
 
   export default {
     name: 'EventsForm',
@@ -93,13 +100,12 @@
           return {
           id: index + 1, // Assign an ID based on the index
           name: departmentName, // Use the name directly from the response
-      };
+      }
     });
     const apiDateDict  = await getAllDatesWithEvents();
-    await this.getExistingEventsDate()
-    this.apiDateDict = this.formatDatesToYYYYMMDD(apiDateDict);
-    console.log(this.apiDateDict);
 
+    this.apiDateDict = this.formatDatesToYYYYMMDD(apiDateDict);
+    console.log(this.apiDateDict)
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.forEach(tooltipTriggerEl => {
     new bootstrap.Tooltip(tooltipTriggerEl);
@@ -124,26 +130,6 @@
 
     },
     methods: {
-        async getExistingEventsDate() {
-        try {
-          // Fetch existing events and assign them to existingEvents
-          this.existingEvents = await getExistingEvents()
-          this.existingEvents = this.existingEvents.map(event => {
-          const dateObj = new Date(event);
-          
-          // Extract the components of the date
-          const year = dateObj.getFullYear(); // Get the full year (e.g., 2024)
-          const month = ('0' + (dateObj.getMonth() + 1)).slice(-2); // Add leading zero for month if necessary
-          const day = ('0' + dateObj.getDate()).slice(-2); // Add leading zero for day if necessary
-
-          // Combine them into the "YYYY-MM-DD" format
-          return `${year}-${month}-${day}`;
-      });    
-            } catch (error) {
-          console.error('Error fetching existing events:', error);
-        }
-      },
-
       checkWhetherExistingDateOverlap(selectedDate) {
       // Compare the selected date (already in YYYY-MM-DD format)
       return this.existingEvents.includes(selectedDate);
@@ -159,7 +145,8 @@
            await axios.post('http://127.0.0.1:5000/create-event', {
             date: this.selectedDate,
             empId: empId,
-            creator: empId
+            creator: empId,
+            description: this.description
         })
         .then(response => {
             console.log(response.data);  // Log the response to see what happens
@@ -176,18 +163,42 @@
 
         }
       },
+
       formatDatesToYYYYMMDD(dateDict) {
       const formattedDict = {};
-      for (const [dateString, description] of Object.entries(dateDict)) {
-        const date = new Date(dateString); // Convert to Date object
-        const day = String(date.getDate()).padStart(2, '0'); // Get day with leading zero
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Get month with leading zero
-        const year = date.getFullYear(); // Get the full year
 
-        formattedDict[`${year}-${month}-${day}`] = description; // Return formatted date as key
+      for (const [dateString, event] of Object.entries(dateDict)) {
+        // Instead of manually creating the date, use dateString directly
+        const formattedDate = dateString; // Use the date as-is
+
+        // Access description and event_id directly from the event object
+        const description = event[0] || "No description"; // First element is description
+        const eventId = event[1] || "No event ID"; // Second element is event_id
+
+        // Assign the description and event_id as the array value
+        formattedDict[formattedDate] = [description, eventId];
       }
+
       return formattedDict;
     },
+
+    async removeEvent(date) {
+  // Check if the date exists in the object before attempting to delete it
+  if (this.apiDateDict.hasOwnProperty(date)) {
+    const eventID = this.apiDateDict[date][1]; // Access the event ID correctly from array
+    try {
+      const response = await deleteEvent(eventID);  // Assuming deleteEvent sends the delete request to your backend
+      if (response) {
+        delete this.apiDateDict[date];  // Remove event from the local object if deletion is successful
+        window.alert('Deletion succeeded  .');
+      } else {
+        window.alert('Deletion failed.');
+      }
+    } catch (error) {
+      console.error('Error during deletion:', error);
+    }
+  }
+}
   },
   };
   </script>

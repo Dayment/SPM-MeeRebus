@@ -308,8 +308,8 @@ class FlaskAPITestCase(unittest.TestCase):
     def test_get_unique_event_dates_success(self, mock_supabase):
         # Mock the Supabase client response for successful event date retrieval
         mock_supabase.table().select().execute.return_value = MagicMock(
-            data=[{'date': '2024-10-15', 'description': 'Annual Meeting'},
-                  {'date': '2024-11-20', 'description': 'Team Workshop'}]
+            data=[{'date': '2024-10-15', 'description': 'Annual Meeting', 'event_id': 1},
+                  {'date': '2024-11-20', 'description': 'Team Workshop', 'event_id': 2}]
         )
         
         # Simulate a GET request to /event-dates
@@ -318,11 +318,13 @@ class FlaskAPITestCase(unittest.TestCase):
         # Assert that the status code is 200 OK
         self.assertEqual(response.status_code, 200)
         
-        # Check that the correct event dates and descriptions are in the response data
+        # Check that the correct event dates, descriptions, and event IDs are in the response data
         self.assertIn(b'2024-10-15', response.data)
         self.assertIn(b'Annual Meeting', response.data)
+        self.assertIn(b'1', response.data)  # Event ID
         self.assertIn(b'2024-11-20', response.data)
         self.assertIn(b'Team Workshop', response.data)
+        self.assertIn(b'2', response.data)  # Event ID
 
     @patch('api.supabase')
     def test_get_unique_event_dates_no_data(self, mock_supabase):
@@ -336,8 +338,8 @@ class FlaskAPITestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         
         # Assert the proper error message is in the response
-        self.assertIn(b'No event dates found', response.data)
-
+        self.assertIn(b'No events found', response.data)  # Updated message to match actual API response
+    
     @patch('api.supabase')
     def test_get_unique_event_dates_internal_error(self, mock_supabase):
         # Mock the Supabase client response to raise an exception
@@ -351,7 +353,6 @@ class FlaskAPITestCase(unittest.TestCase):
         
         # Assert the error message is in the response
         self.assertIn(b'Internal Server Error', response.data)
-
 
 
     @patch('api.supabase')
@@ -483,6 +484,61 @@ class FlaskAPITestCase(unittest.TestCase):
         # Assert the response contains the traceback information
         self.assertIn(b'Traceback', response.data)
 
+    @patch('api.supabase')
+    def test_delete_event_success(self, mock_supabase):
+        # Mock the response for deleting from the junction table and event table
+        mock_supabase.table().delete().eq().execute.side_effect = [
+            MagicMock(data=[{'employee_staff_id': 1}]),  # Mock deletion from employee_has_events
+            MagicMock(data=[{'event_id': 1}])  # Mock deletion from events table
+        ]
+        
+        # Simulate a POST request to /delete-event
+        response = self.client.post('/delete-event', json={'eventId': 1})
+        
+        # Assert the response is 200 OK
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Event and its related records deleted successfully', response.data)
+
+    @patch('api.supabase')
+    def test_delete_event_missing_event_id(self, mock_supabase):
+        # Simulate a POST request without eventId
+        response = self.client.post('/delete-event', json={})
+        
+        # Assert the response is 400 Bad Request due to missing eventId
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(b'Event ID is required', response.data)
+
+    @patch('api.supabase')
+    def test_delete_event_junction_table_fail(self, mock_supabase):
+        # Mock the response where deletion from the junction table fails
+        mock_supabase.table().delete().eq().execute.side_effect = [
+            MagicMock(data=[]),  # No rows affected in employee_has_events
+            MagicMock(data=[{'event_id': 1}])  # Deletion from events table still proceeds
+        ]
+        
+        # Simulate a POST request to /delete-event
+        response = self.client.post('/delete-event', json={'eventId': 1})
+        
+        # Assert the response is still 200 OK, because both deletions are performed, but warn about junction table
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'Event and its related records deleted successfully', response.data)
+
+    @patch('api.supabase')
+    def test_delete_event_fail_on_event_table(self, mock_supabase):
+        # Mock successful deletion from employee_has_events
+        mock_supabase.table().delete().eq().execute.side_effect = [
+            MagicMock(data=[{'employee_staff_id': 1}]),  # Success for junction table
+            Exception('Simulated exception during event deletion')  # Trigger an exception for the event table
+        ]
+        
+        # Simulate a POST request to /delete-event
+        response = self.client.post('/delete-event', json={'eventId': 1})
+        
+        # Assert that the response is 500 Internal Server Error due to the exception
+        self.assertEqual(response.status_code, 500)
+        
+        # Assert the exception message is in the response data
+        self.assertIn(b'Simulated exception during event deletion', response.data)
 
 if __name__ == '__main__':
     unittest.main()

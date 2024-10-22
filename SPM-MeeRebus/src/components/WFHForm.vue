@@ -113,11 +113,34 @@
     </div>
 
     <button type="submit" class="btn btn-primary">Submit WFH Request</button>
+    
+    <div class="mt-4">
+      <h3>Dates That Are Blocked Off</h3>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Date</th> 
+            <th>Event Description</th>
+            <th>Event ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(description, date) in DateDict" :key="date">
+            <td>{{ date }}</td>
+            <td>{{ description[0]}}</td>
+            <td>{{ description[1]}}</td>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </form>
 </template>
 
 <script>
+import { getAllDepartments, getAllDatesWithEvents, getExistingEvents } from '../api/api';
 import { convertFileToUrl } from '@/api/api';
+
 
 export default {
   name: 'WFHForm',
@@ -144,10 +167,24 @@ export default {
       requestType: '',
       recurrenceFrequency: '',
       recurrenceEndDate: '',
+      DateDict: {},
       uploadedFile: null,
       uploadedFileUrl: '', //after converting to link from supabase storage
+
     };
   },
+  async mounted() {
+
+    const apiDateDict  = await getAllDatesWithEvents();
+    this.DateDict = this.formatDatesToYYYYMMDD(apiDateDict);
+
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(tooltipTriggerEl => {
+    new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+  
+    },  
+
   computed: {
     invalidMessage() {
       if (
@@ -190,11 +227,26 @@ export default {
     },
   },
   methods: {
+
+    formatDatesToYYYYMMDD(dateDict) {
+      const formattedDict = {};
+      for (const [dateString, description] of Object.entries(dateDict)) {
+        const date = new Date(dateString); // Convert to Date object
+        const day = String(date.getDate()).padStart(2, '0'); // Get day with leading zero
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Get month with leading zero
+        const year = date.getFullYear(); // Get the full year
+
+        formattedDict[`${year}-${month}-${day}`] = description; // Return formatted date as key
+      }
+      return formattedDict;
+    },
+
     onFileChange(event) {
       this.uploadedFile = event.target.files[0];
     },
 
     async handleSubmit() {
+
       const payload = {
         date: this.selectedDate,
         time: this.wfhtime, // AM, PM or Full Day
