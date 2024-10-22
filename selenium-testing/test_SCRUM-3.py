@@ -27,6 +27,7 @@ def refresh_page():
 
 def verify_table_results(team, sub_team=None):
     # Wait for the table to load
+    time.sleep(2)
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "table.table"))
     )
@@ -56,6 +57,7 @@ def verify_table_results(team, sub_team=None):
 
 
 try:
+    driver.maximize_window()
     # Visit the local page
     driver.get("http://localhost:5173")  # Update this URL to your actual local setup
 
@@ -75,9 +77,9 @@ try:
     )
     print("Login successful.")
 
-    # Navigate to the Company Schedule page
+    # Navigate to the Company Schedule page using XPath
     company_schedule_link = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "a.nav-link[href='/company']"))
+        EC.presence_of_element_located((By.XPATH, "/html/body/div/div/nav/div/div/ul/li[3]/a"))
     )
     company_schedule_link.click()
 
