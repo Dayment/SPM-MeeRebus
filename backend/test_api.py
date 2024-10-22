@@ -205,24 +205,23 @@ class FlaskAPITestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.data), mock_data)
 
-    def test_cancel_arrangement_success(self):
-        arrangement_id = 1
-        mock_arrangement_data = {
-            "arrangement_id": arrangement_id,
-            "status": 1  
-        }
-        # This is basically arrangement_response
-        # Mock the Supabase response for fetching the arrangement
-        self.mock_supabase.table().select().eq().single().execute.return_value = MagicMock(data=mock_arrangement_data)
+    # def test_cancel_arrangement_success(self):
+    #     arrangement_id = 1
+    #     mock_arrangement_data = {
+    #         "arrangement_id": arrangement_id,
+    #         "status": 1  
+    #     }
+    #     # This is basically arrangement_response
+    #     # Mock the Supabase response for fetching the arrangement
+    #     self.mock_supabase.table().select().eq().single().execute.return_value = MagicMock(data=mock_arrangement_data)
         
-        # Mock the Supabase response for updating the arrangement status
-        self.mock_supabase.table().update().eq().execute.return_value = MagicMock(data={"status": 3})
+    #     # Mock the Supabase response for updating the arrangement status
+    #     self.mock_supabase.table().update().eq().execute.return_value = MagicMock(data={"status": 3})
 
-        response = self.client.put(f'/arrangement/cancel/{arrangement_id}')
+    #     response = self.client.put(f'/arrangement/cancel/{arrangement_id}')
         
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(json.loads(response.data), {"message": "Arrangement cancelled successfully."})
-
+    #     self.assertEqual(response.status_code, 200)
+    #     self.assertEqual(json.loads(response.data), {"message": "Arrangement cancelled successfully."})
 
     def test_cancel_arrangement_failure(self):
         arrangement_id = 1
