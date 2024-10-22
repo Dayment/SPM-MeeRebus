@@ -59,7 +59,7 @@ def create_app(test_config=None):
             msg_to_manager = Message("WFH Application Submitted",
                                     sender=os.getenv("notification_email"),
                                     recipients=[manager_email])
-            msg_to_manager.body = f"Dear Manager,\n\nEmployee {employee_name} has submitted a WFH application {application_id}."
+            msg_to_manager.body = f"Dear Manager,\n\nEmployee {employee_name} has submitted a WFH application."
             mail.send(msg_to_manager)
             print(f"Email sent to manager {manager_email}")
         except Exception as e:
