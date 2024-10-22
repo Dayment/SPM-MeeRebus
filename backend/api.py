@@ -59,7 +59,7 @@ def create_app(test_config=None):
             msg_to_manager = Message("WFH Application Submitted",
                                     sender=os.getenv("notification_email"),
                                     recipients=[manager_email])
-            msg_to_manager.body = f"Dear Manager,\n\nEmployee {employee_name} has submitted a WFH application."
+            msg_to_manager.body = f"Dear Manager,\n\nEmployee {employee_name} has submitted a WFH application {application_id}."
             mail.send(msg_to_manager)
             print(f"Email sent to manager {manager_email}")
         except Exception as e:
@@ -483,7 +483,7 @@ def create_app(test_config=None):
 
             # Send notification emails after successful submission
             if manager_email and employee_email:
-                send_wfh_notification("minthukha2002@gmail.com", "minthukha2002@gmail.com", employee_name)
+                send_wfh_notification(employee_email, manager_email, employee_name)
 
             return jsonify({"message": "WFH request submitted successfully and is now pending approval."}), 201
 
