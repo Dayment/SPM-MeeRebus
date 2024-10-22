@@ -34,7 +34,6 @@ export const getAllApprovedArrangement = async () => {
 
 export const createWFHRequest = async (payload) => {
   try {
-    console.log(payload, 'payloadddad');
     const response = await axios.post(
       `${API_BASE_URL}/arrangement/submit`,
       payload,
@@ -86,6 +85,7 @@ export const getAllDepartments = async () => {
 export const getAllDatesWithEvents = async () => {
   try {
     const response = await axios.get(`${API_BASE_URL}/event-dates`);
+
     return response.data;
   } catch (error) {
     console.error('Error fetching list of unique departments', error);
@@ -95,7 +95,7 @@ export const getAllDatesWithEvents = async () => {
 
 export const getExistingEvents = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/all-events-datetimes`);
+    const response = await axios.get(`${API_BASE_URL}/event-dates`);
     return response.data;
   } catch (error) {
     console.error('Error fetching list of existing events', error);
@@ -121,6 +121,24 @@ export const getDeptApprovedArrangement2 = async () => {
   } catch (error) {
     console.error('Error fetching approved arrangements:', error);
     throw error;
+  }
+};
+
+export const deleteEvent = async (eventId) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/delete-event`, {
+      eventId: eventId, // Send the event ID or event identifier as data in the POST request
+    });
+
+    // Optionally, store or update local storage or state if necessary
+    if (response.data.success) {
+      console.log('Event successfully deleted');
+    }
+
+    return response.data; // Return the response from the server
+  } catch (error) {
+    console.error('Error deleting the event:', error);
+    throw error; // Re-throw the error for the caller to handle
   }
 };
 
