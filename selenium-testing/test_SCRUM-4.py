@@ -37,10 +37,18 @@ try:
     )
     application_history_link.click()
     
-    # 5) Pause for 5 seconds to ensure the history page has loaded
-    time.sleep(5)
+    # 5) Pause for 2 seconds to ensure the history page has loaded
+    time.sleep(2)
 
     # 6) Find the row with <td>11/1/2024, 9:00:00 AM</td> and get the Cancel button
+    reset_url = "http://localhost:5000/arrangement/test_scrum_8_reset_arrangement_status/10"
+    response = requests.put(reset_url)
+
+    if response.status_code == 200:
+        print("Arrangement reset successfully.")
+    else:
+        print(f"Failed to reset arrangement: {response.status_code}")
+
     arrangement_row = WebDriverWait(browser, 10).until(
         EC.presence_of_element_located((By.XPATH, "//td[text()='2024-11-01']/.."))
     )
@@ -70,7 +78,7 @@ try:
         print(f"Failed to reset arrangement: {response.status_code}")
 
     # 9) Pause for observation
-    time.sleep(5)
+    time.sleep(3)
 
 finally:
     # Close the browser after test
