@@ -1,5 +1,6 @@
 import pytest
 import time
+import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -11,6 +12,7 @@ def test_navigation():
     url = "http://localhost:5173/"
 
     driver = webdriver.Chrome()
+    driver.maximize_window()
 
     try:
         driver.get(url)
@@ -62,16 +64,16 @@ def test_navigation():
             return
 
         # Check if the current month is October
-        current_month = month_dropdown.text
-        if current_month != "October":
+        current_month = datetime.datetime.strptime(month_dropdown.text, "%B")
+        if current_month.month != 10:  # October is the 10th month
             print("Initial month is not October.")
             return
 
         # Click the "Previous" button and check if the month changes to September
         prev_button.click()
         time.sleep(2)  # Wait for UI update
-        updated_month = month_dropdown.text
-        if updated_month == "September":
+        updated_month = datetime.datetime.strptime(month_dropdown.text, "%B")
+        if updated_month.month == 9:  # September is the 9th month
             print("Previous month navigation successful.")
 
             # Check for the "Next" button after successfully navigating to the previous month
@@ -82,8 +84,8 @@ def test_navigation():
                 # Click "Next" and check if the month changes back to October
                 next_button.click()
                 time.sleep(2)  # Wait for UI update
-                updated_month = month_dropdown.text
-                if updated_month == "October":
+                updated_month = datetime.datetime.strptime(month_dropdown.text, "%B")
+                if updated_month.month == 10:  # October is the 10th month
                     print("Next month navigation successful.")
                 else:
                     print("Next month navigation failed.")
