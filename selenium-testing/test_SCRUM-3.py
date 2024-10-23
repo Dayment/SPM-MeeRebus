@@ -56,7 +56,7 @@ def verify_table_results(team, sub_team=None):
     print(f"Table results verified for team: {team}, sub-team: {sub_team}")
 
 
-try:
+def test_navigation():
     driver.maximize_window()
     # Visit the local page
     driver.get("http://localhost:5173")  # Update this URL to your actual local setup
@@ -172,14 +172,11 @@ try:
     print("Calendar view visible.")
 
     print("All tests passed successfully!")
-
-except Exception as e:
-    print(f"Test failed: {str(e)}")
-    # Optionally, take a screenshot or dump the page source for debugging
-    driver.save_screenshot("error_screenshot.png")
-    with open("error_page_source.html", "w", encoding="utf-8") as f:
-        f.write(driver.page_source)
-
-finally:
-    # Close the browser
+    
     driver.quit()
+    # print(f"Test failed: {str(e)}")
+    # Optionally, take a screenshot or dump the page source for debugging
+    # driver.save_screenshot("error_screenshot.png")
+    # with open("error_page_source.html", "w", encoding="utf-8") as f:
+    #    f.write(driver.page_source)
+

@@ -6,9 +6,9 @@ import time
 import requests
 
 # Setup the WebDriver (ensure you have the right driver for your browser)
-browser = webdriver.Chrome()
+def test_navigation():
+    browser = webdriver.Chrome()
 
-try:
     # Maximize the browser window
     browser.maximize_window()
 
@@ -80,6 +80,5 @@ try:
     # 9) Pause for observation
     time.sleep(3)
 
-finally:
     # Close the browser after test
     browser.quit()

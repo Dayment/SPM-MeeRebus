@@ -14,7 +14,9 @@ def test_navigation():
     url = "http://localhost:5173/"
 
     browser = webdriver.Chrome()
-    
+    browser.get("http://localhost:5173/")
+
+
     # Find the input element by id and type in the employee ID
     emp_id_input = browser.find_element(By.ID, "empId")
     emp_id_input.send_keys("150065")

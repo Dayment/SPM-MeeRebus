@@ -108,7 +108,7 @@ export default {
                     eventBus.isDir = true; 
                     localStorage.setItem('isDir', true);
                     
-                    await this.getOwnUnderlingArrangementData();
+                    await this.getOwnUnderlingData(response.data.staff_id);
 
                 }else if( response.data.role == 3 ){
 
