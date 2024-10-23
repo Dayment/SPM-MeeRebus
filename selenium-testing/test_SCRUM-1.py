@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 def test_apply_wfh_arrangement():
     driver = webdriver.Chrome()
+    driver.maximize_window()
 
     try:
         # Go to the main page
