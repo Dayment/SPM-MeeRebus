@@ -9,19 +9,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
-@pytest.fixture
-def browser():
-    options = Options()
-    options.add_argument('--headless')  # Run in headless mode for CI
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Chrome(options=options)
-    yield driver
-    driver.quit()
 
-def test_navigation(browser, url):
+def test_navigation():
+    url = "http://localhost:5173/"
 
-    browser.get(url)
+    browser = webdriver.Chrome()
     
     # Find the input element by id and type in the employee ID
     emp_id_input = browser.find_element(By.ID, "empId")
