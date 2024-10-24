@@ -78,7 +78,7 @@ def test_navigation():
         print(f"Failed to reset arrangement: {response.status_code}")
 
     # 9) Pause for observation
-    time.sleep(3)
+    time.sleep(2)
 
     # Close the browser after test
     browser.quit()
