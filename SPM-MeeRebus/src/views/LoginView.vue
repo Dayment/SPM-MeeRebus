@@ -107,7 +107,9 @@ export default {
                     localStorage.setItem('isHR', true);
                     eventBus.isDir = true; 
                     localStorage.setItem('isDir', true);
-                    
+                    eventBus.isManager = true; 
+                    localStorage.setItem('isManager', true);
+
                     await this.getOwnUnderlingData(response.data.staff_id);
 
                 }else if( response.data.role == 3 ){

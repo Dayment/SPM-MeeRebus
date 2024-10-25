@@ -1,6 +1,6 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <div class="container-fluid">
+      <div class="container-fluid ">
           <a class="navbar-brand" href="/home">WFH Management System</a>
           <button
               class="navbar-toggler"
@@ -122,6 +122,9 @@ export default {
 </script>
 
 <style scoped>
+.navbar {
+  font-size: 0.9rem;
+}
 .logout-container {
   margin-left: auto;
 }
