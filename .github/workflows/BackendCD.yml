@@ -23,7 +23,8 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t meerebusflask:latest -f backend/Dockerfile backend/
+          # Build from the root directory (Site), specifying the Dockerfile location
+          docker build -t meerebusflask:latest -f backend/Dockerfile .
           docker tag meerebusflask:latest ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
 
