@@ -24,7 +24,7 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t meerebusflask:latest .
+          docker build -t meerebusflask:latest -f backend/Dockerfile backend/
           docker tag meerebusflask:latest ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
 
