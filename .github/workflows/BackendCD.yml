@@ -3,12 +3,11 @@ name: Deploy to Azure VM
 on:
   push:
     branches:
-      - main  # Change to your default branch if different
+      - main  # Change this to your default branch if necessary
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -24,21 +23,12 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build -t meerebusflask:latest .
+          # Build from the root directory (Site), specifying the Dockerfile location
+          docker build -t meerebusflask:latest -f backend/Dockerfile .
           docker tag meerebusflask:latest ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
           docker push ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
 
       - name: SSH to Azure VM and Deploy
-        uses: appleboy/scp-action@v0.1.0
-        with:
-          host: ${{ secrets.AZURE_VM_IP }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          source: "docker-compose.yml"  # If you're using Docker Compose; adjust as needed
-          target: "/path/on/your/vm"
-
-      - name: SSH to Azure VM and Run Docker Commands
         uses: appleboy/ssh-action@v0.1.0
         with:
           host: ${{ secrets.AZURE_VM_IP }}
@@ -46,7 +36,23 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
-            docker stop $(docker ps -q --filter ancestor=${{ secrets.DOCKER_USERNAME }}/meerebusflask)
-            docker rm $(docker ps -aq --filter ancestor=${{ secrets.DOCKER_USERNAME }}/meerebusflask)
-            docker run -d -p 5000:5000 ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
+            # Pull the latest image
+            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
+            
+            # List Docker images for debugging
+            sudo docker images
+            
+            # Check if a container is running
+            CONTAINER_ID=$(sudo docker ps -q --filter ancestor=${{ secrets.DOCKER_USERNAME }}/meerebusflask)
+            if [ -n "$CONTAINER_ID" ]; then
+              # If a container is running, stop and remove it
+              echo "Stopping and removing existing container..."
+              sudo docker stop $CONTAINER_ID
+              sudo docker rm $CONTAINER_ID
+            else
+              echo "No existing container found."
+            fi
+            
+            # Run the new container
+            echo "Running the new container..."
+            sudo docker run -d -p 5000:5000 ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
