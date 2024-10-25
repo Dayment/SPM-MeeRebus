@@ -39,10 +39,23 @@ jobs:
             # Pull the latest image
             docker pull ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
             
-            # Stop and remove the existing container
+            # List Docker images for debugging
+            docker images
+            
+            # Check if a container is running
             CONTAINER_ID=$(docker ps -q --filter ancestor=${{ secrets.DOCKER_USERNAME }}/meerebusflask)
             if [ -n "$CONTAINER_ID" ]; then
+              # If a container is running, stop and remove it
+              echo "Stopping and removing existing container..."
               docker stop $CONTAINER_ID
+              docker rm $CONTAINER_ID
+            else
+              echo "No existing container found."
+            fi
+            
+            # Run the new container
+            echo "Running the new container..."
+            docker run -d -p 5000:5000 ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
               docker rm $CONTAINER_ID
             fi
             
