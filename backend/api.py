@@ -479,6 +479,7 @@ def create_app(test_config=None):
             return jsonify({"message": "WFH request submitted successfully and is now pending approval."}), 201
 
         except Exception as e:
+            print(f"Error in create_WFH_request: {str(e)}")  # Add this line
             return jsonify({"error": str(e)}), 500
         
     @app.route('/arrangement/approve/<int:arrangement_id>', methods=['PUT'])
