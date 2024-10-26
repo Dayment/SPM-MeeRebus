@@ -36,7 +36,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            ssh -vvv my30throat@48.218.168.55
+            ssh -vvv my30cmthroat@48.218.168.55
             # Pull the latest image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
             
