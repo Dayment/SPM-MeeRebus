@@ -34,6 +34,7 @@ a,
     /* display: flex; */
     /* place-items: center; */
     background-color: white;
+    color: #333333;
   }
 
   #app {
