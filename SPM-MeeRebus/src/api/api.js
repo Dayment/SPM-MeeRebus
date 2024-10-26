@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://earnest-grace-production-04af.up.railway.app'; // move to env
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL; // move to env
 
 export const getAllEmployee = async () => {
   try {

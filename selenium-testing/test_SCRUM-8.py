@@ -8,13 +8,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+import os
 
 
 def test_navigation():
-    url = "http://48.218.168.55:5173/"
+    base_url = os.getenv("BASE_URL")
 
     browser = webdriver.Chrome()
-    browser.get("http://48.218.168.55:5173/")
+    
+
+    # 1) Go to the URL from the environment variable
+    browser.get(base_url)
 
 
     # Find the input element by id and type in the employee ID

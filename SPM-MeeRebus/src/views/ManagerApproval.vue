@@ -31,7 +31,7 @@ onMounted(async () => {
     const staff_id = test.staff_id;
     try {
       const response = await axios.get(
-        `https://earnest-grace-production-04af.up.railway.app/manager/underlings/${staff_id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/manager/underlings/${staff_id}`,
       );
       localStorage.setItem('teamArrangement', JSON.stringify(response.data));
       const storedArrangements = localStorage.getItem('teamArrangement');
@@ -101,7 +101,7 @@ const getTimeLabel = (time) => {
 const approveArrangement = async (arrangementId) => {
   try {
     const response = await axios.put(
-      `https://earnest-grace-production-04af.up.railway.app/arrangement/approve/${arrangementId}`,
+      `${import.meta.env.VITE_BACKEND_URL}/arrangement/approve/${arrangementId}`,
     );
     if (response.status === 200) {
       // Update the local state to reflect the change (for demo purposes only)
@@ -131,7 +131,7 @@ const withdrawArrangement = async (reason) => {
     console.log(payload.arrangement_id);
 
     const response = await axios.put(
-      `https://earnest-grace-production-04af.up.railway.app/arrangement/manager/withdraw`,
+      `${import.meta.env.VITE_BACKEND_URL}/arrangement/manager/withdraw`,
       payload,
     );
 

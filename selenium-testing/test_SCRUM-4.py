@@ -4,16 +4,19 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import requests
-
+import os
 # Setup the WebDriver (ensure you have the right driver for your browser)
+
 def test_navigation():
     browser = webdriver.Chrome()
 
     # Maximize the browser window
     browser.maximize_window()
 
-    # 1) Go to http://48.218.168.55:5173/
-    browser.get("http://48.218.168.55:5173/")
+    base_url = os.getenv("BASE_URL")
+
+    # 1) Go to the URL from the environment variable
+    browser.get(base_url)
     
     # 2) Find the employee ID input field and enter the ID "150065"
     emp_id_input = WebDriverWait(browser, 10).until(
@@ -41,7 +44,7 @@ def test_navigation():
     time.sleep(2)
 
     # 6) Find the row with <td>11/1/2024, 9:00:00 AM</td> and get the Cancel button
-    reset_url = "https://earnest-grace-production-04af.up.railway.app/arrangement/test_scrum_8_reset_arrangement_status/10"
+    reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/10"    
     response = requests.put(reset_url)
 
     if response.status_code == 200:
@@ -69,7 +72,7 @@ def test_navigation():
         print("Error: Cancel button is still present.")
 
     # 8) Reset the arrangement with arrangement_id=10 via API call
-    reset_url = "https://earnest-grace-production-04af.up.railway.app/arrangement/test_scrum_8_reset_arrangement_status/10"
+    reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/10"    
     response = requests.put(reset_url)
 
     if response.status_code == 200:

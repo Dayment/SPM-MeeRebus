@@ -372,7 +372,7 @@ export default {
     async checkCompanyArrangementData() {
       try {
         const response = await axios.get(
-          `https://earnest-grace-production-04af.up.railway.app/arrangement`,
+          `${import.meta.env.VITE_BACKEND_URL}/arrangement`,
         );
         localStorage.setItem(
           'companyArrangements',
@@ -436,7 +436,7 @@ export default {
     },
     async fetchArrangementData() {
       try {
-        // const response = await axios.get('https://earnest-grace-production-04af.up.railway.app/arrangement');
+        // const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/arrangement`);
         // this.arrangements = response.data;
         localStorage.getItem('empArrangement');
         checkHR = localStorage.getItem('empData');
@@ -446,7 +446,7 @@ export default {
           checkHR.position == 'Director'
         ) {
           const response = await axios.get(
-            'https://earnest-grace-production-04af.up.railway.app/arrangement',
+            `${import.meta.env.VITE_BACKEND_URL}/arrangement`,
           );
           localStorage.setItem('arrangement', JSON.stringify(response.data));
         }

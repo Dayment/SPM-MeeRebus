@@ -43,7 +43,7 @@ onMounted(async () => {
     const staff_id = test.staff_id;
     try {
       const response = await axios.get(
-        `https://earnest-grace-production-04af.up.railway.app/arrangement/emp/${staff_id}`,
+        `${import.meta.env.VITE_BACKEND_URL}/arrangement/emp/${staff_id}`,
       );
       localStorage.setItem('empArrangement', JSON.stringify(response.data));
       const storedArrangements = localStorage.getItem('empArrangement');
@@ -94,7 +94,7 @@ const getTimeLabel = (time) => {
 const cancelArrangement = async (arrangementId) => {
   try {
     const response = await axios.put(
-      `https://earnest-grace-production-04af.up.railway.app/arrangement/cancel/${arrangementId}`,
+      `${import.meta.env.VITE_BACKEND_URL}/arrangement/cancel/${arrangementId}`,
     );
     if (response.status === 200) {
       // Update the local state to reflect the change (for demo purposes only)

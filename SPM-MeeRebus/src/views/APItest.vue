@@ -8,7 +8,7 @@ export default {
     async testApi() {
       try {
         const response = await axios.get(
-          'https://earnest-grace-production-04af.up.railway.app/employee',
+          `${import.meta.env.VITE_BACKEND_URL}/employee`,
         );
         localStorage.setItem('employee', JSON.stringify(response.data));
         console.log(response.data);
@@ -21,7 +21,7 @@ export default {
     async testApi2() {
       try {
         const response = await axios.get(
-          'https://earnest-grace-production-04af.up.railway.app/arrangement',
+          `${import.meta.env.VITE_BACKEND_URL}/arrangement`,
         );
         localStorage.setItem('arrangement', JSON.stringify(response.data));
         console.log(response.data);
