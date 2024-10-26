@@ -35,8 +35,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
+          debug: true
           script: |
-            ssh -vvv my30cmthroat@48.218.168.55
             # Pull the latest image
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/meerebusflask:latest
             
