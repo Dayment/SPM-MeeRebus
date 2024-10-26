@@ -12,6 +12,7 @@ class CreateWFHRequestIntegrationTest(unittest.TestCase):
 
     def setUp(self):
         self.mock_supabase = patch('api.supabase').start()
+        print("hi")
 
     def tearDown(self):
         patch.stopall()
