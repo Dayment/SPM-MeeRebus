@@ -25,7 +25,7 @@ def create_app(test_config=None):
     app = Flask(__name__)
     # CORS(app)
     Talisman(app, force_https=True)
-    CORS(app, origins=["https://spm-mee-rebus.vercel.app"])
+    CORS(app)
     load_dotenv()
 
     if test_config is not None:

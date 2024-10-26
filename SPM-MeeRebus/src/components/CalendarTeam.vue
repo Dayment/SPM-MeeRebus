@@ -4,7 +4,9 @@
       <div class="col-md-12">
         <!-- Header for the Month and Year with Dropdowns -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <button class="btn btn-primary" @click="previousMonth">Previous</button>
+          <button class="btn btn-primary" @click="previousMonth">
+            Previous
+          </button>
 
           <!-- Month Dropdown -->
           <div class="dropdown">
@@ -17,11 +19,14 @@
             >
               {{ currentMonth }}
             </button>
-            <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownMonth">
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="dropdownMonth"
+            >
               <li v-for="(month, index) in months" :key="month">
-                <a 
-                  class="dropdown-item" 
-                  href="#" 
+                <a
+                  class="dropdown-item"
+                  href="#"
                   @click="selectMonth(index)"
                   data-bs-dismiss="dropdown"
                 >
@@ -42,11 +47,14 @@
             >
               {{ currentYear }}
             </button>
-            <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownYear">
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="dropdownYear"
+            >
               <li v-for="year in years" :key="year">
-                <a 
-                  class="dropdown-item" 
-                  href="#" 
+                <a
+                  class="dropdown-item"
+                  href="#"
                   @click="selectYear(year)"
                   data-bs-dismiss="dropdown"
                 >
@@ -59,10 +67,11 @@
           <button class="btn btn-primary" @click="nextMonth">Next</button>
         </div>
 
-
         <!-- Days of the Week -->
         <div class="row text-center bg-light mb-2">
-          <div class="col day-header" v-for="day in daysOfWeek" :key="day">{{ day }}</div>
+          <div class="col day-header" v-for="day in daysOfWeek" :key="day">
+            {{ day }}
+          </div>
         </div>
 
         <!-- Days of the Month -->
@@ -80,21 +89,22 @@
             v-for="day in daysInMonth"
             :key="day"
             @click="selectDate(day)"
-            :class="{ 
+            :class="{
               'selected-day': isSelectedDay(day),
               'today-border': isToday(day),
-              'arranged-day': isArrangedDay(day) !== null
-
+              'arranged-day': isArrangedDay(day) !== null,
             }"
             :style="{ backgroundColor: getArrangementColor(day) }"
-          > 
-          <!-- Insert arrangement details here. Reason, etc -->
-          <div v-if="isArrangedDayObj(day) !== null">
-            <p><strong>Staff ID: </strong> {{ isArrangedDayObj(day).staff_id }}</p>
-            <p><strong>Reason:</strong> {{ isArrangedDayObj(day).reason }}</p>
-            <p><strong>Status:</strong> {{ isArrangedDayObj(day).status }}</p>
-          </div>
-          <!-- :style="{backgroundColor: isToday(day) ? 'white' : ''}" OLD STYLE -->
+          >
+            <!-- Insert arrangement details here. Reason, etc -->
+            <div v-if="isArrangedDayObj(day) !== null">
+              <p>
+                <strong>Staff ID: </strong> {{ isArrangedDayObj(day).staff_id }}
+              </p>
+              <p><strong>Reason:</strong> {{ isArrangedDayObj(day).reason }}</p>
+              <p><strong>Status:</strong> {{ isArrangedDayObj(day).status }}</p>
+            </div>
+            <!-- :style="{backgroundColor: isToday(day) ? 'white' : ''}" OLD STYLE -->
             <div class="day-content">{{ day }}</div>
           </div>
         </div>
@@ -149,12 +159,12 @@
 //       if (storedArrangements) {
 //         // this.arrangements = JSON.parse(storedArrangements);
 //       } else {
-//         // await this.fetchArrangementData(); 
+//         // await this.fetchArrangementData();
 //       }
 //     },
 //     async checkTeamArrangementData(staff_id) {
 //       try{
-//         const response = await axios.get(`http://48.218.168.55:5000/arrangement/posi/${staff_id}`);
+//         const response = await axios.get(`https://earnest-grace-production-04af.up.railway.app/arrangement/posi/${staff_id}`);
 //         localStorage.setItem("teamArrangements", JSON.stringify(response.data))
 //         this.arrangements = response.data
 //         console.log(this.arrangements)
@@ -165,39 +175,39 @@
 //     isArrangedDay(day) {
 //         // Creating the string for the date to do checking with the arrangement date
 //         const formattedDate = `${this.currentYear}-${String(this.currentMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
+
 //         const arrangement = this.arrangements.find(arrangement => {
 //             const arrangementDate = new Date(arrangement.date);
-//             if (!isNaN(arrangementDate.getTime())) { 
+//             if (!isNaN(arrangementDate.getTime())) {
 //                 const arrangementISO = arrangementDate.toISOString().split('T')[0];
 //                 return arrangementISO === formattedDate; // Check for matching date
 //             }
 //             return false; // Skip invalid dates
 //         });
 //         // Return status or null if no arrangement
-//         return arrangement ? arrangement.status : null; 
+//         return arrangement ? arrangement.status : null;
 //     },
 //     // Using this for conditional rendering in the V-if. Might refactor with above code if have time
 //     isArrangedDayObj(day) {
 //         // Creating the string for the date to do checking with the arrangement date
 //         const formattedDate = `${this.currentYear}-${String(this.currentMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
+
 //         const arrangement = this.arrangements.find(arrangement => {
 //             const arrangementDate = new Date(arrangement.date);
-//             if (!isNaN(arrangementDate.getTime())) { 
+//             if (!isNaN(arrangementDate.getTime())) {
 //                 const arrangementISO = arrangementDate.toISOString().split('T')[0];
 //                 return arrangementISO === formattedDate; // Check for matching date
 //             }
 //             return false; // Skip invalid dates
 //         });
 //         // Return status or null if no arrangement
-//         return arrangement || null; 
+//         return arrangement || null;
 //     },
 
 //     // Set the CSS colour depending on arrangement status
 //     getArrangementColor(day) {
 //         const status = this.isArrangedDay(day);
-        
+
 //         if (status === 1) {
 //             return 'lightgreen'; // Accepted arrangements
 //         } else if (status === 0) {
@@ -205,17 +215,17 @@
 //         } else if (status === 2) {
 //             return 'red'; // Denied arrangements
 //         }
-        
+
 //         return ''; // Default background color (no arrangements)
 //     },
 //     async fetchArrangementData() {
 //       try {
-//         // const response = await axios.get('http://48.218.168.55:5000/arrangement');
+//         // const response = await axios.get('https://earnest-grace-production-04af.up.railway.app/arrangement');
 //         // this.arrangements = response.data;
 //         localStorage.getItem('empArrangement');
 //         checkHR = localStorage.getItem("empData")
 //         if (checkHR.dept == "HR"){
-//           const response = await axios.get('http://48.218.168.55:5000/arrangement')
+//           const response = await axios.get('https://earnest-grace-production-04af.up.railway.app/arrangement')
 //           localStorage.setItem('arrangement', JSON.stringify(response.data));
 //         }
 
@@ -278,12 +288,10 @@
 //     },
 //   },
 // };
-// </script>
+//
+</script>
 
 <style scoped>
-
-
-
 /* Calendar Container spans 100% of the width */
 .calendar-container {
   width: 80vw;
@@ -323,8 +331,8 @@
 
 /* Colour for approved WFH */
 .arranged-day {
-    background-color: lightgreen;
-    border: 2px solid darkgreen; 
+  background-color: lightgreen;
+  border: 2px solid darkgreen;
 }
 
 /* Highlight today's date with a border */

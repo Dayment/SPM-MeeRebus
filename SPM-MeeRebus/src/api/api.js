@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://48.218.168.55:5000'; // move to env
+const API_BASE_URL = 'https://earnest-grace-production-04af.up.railway.app'; // move to env
 
 export const getAllEmployee = async () => {
   try {

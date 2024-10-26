@@ -94,16 +94,15 @@
               'today-border': isToday(day),
               // 'arranged-day': isArrangedDay(day) !== null
             }"
-            :style="{backgroundColor: isToday(day) ? 'white' : ''}
-            "
-          > 
-          <!-- Insert arrangement details here. Reason, etc -->
-          <!-- <div v-if="isArrangedDayObj(day) !== null">
+            :style="{ backgroundColor: isToday(day) ? 'white' : '' }"
+          >
+            <!-- Insert arrangement details here. Reason, etc -->
+            <!-- <div v-if="isArrangedDayObj(day) !== null">
             <p><strong>Staff ID: </strong> {{ isArrangedDayObj(day).staff_id }}</p>
             <p><strong>Reason:</strong> {{ isArrangedDayObj(day).reason }}</p>
             <p><strong>Status:</strong> {{ isArrangedDayObj(day).status }}</p>
           </div> -->
-          <!-- :style="{ backgroundColor: getArrangementColor(day) }" OLD STYLE -->
+            <!-- :style="{ backgroundColor: getArrangementColor(day) }" OLD STYLE -->
 
             <div class="day-content">{{ day }}</div>
 
@@ -111,7 +110,7 @@
               <span class="task-title">
                 {{ day }}
                 ({{ this.formatWFHTime(getWFHForDay(day).time) }})
-                {{ getWFHForDay(day)?.employee?.staff_fname || "You" }} :
+                {{ getWFHForDay(day)?.employee?.staff_fname || 'You' }} :
                 {{ getWFHForDay(day).reason_staff || 'No Reason' }}</span
               >
             </div>
@@ -247,12 +246,14 @@ export default {
     },
     async fetchArrangementData() {
       try {
-        // const response = await axios.get('http://48.218.168.55:5000/arrangement');
+        // const response = await axios.get('https://earnest-grace-production-04af.up.railway.app/arrangement');
         // this.arrangements = response.data;
         localStorage.getItem('empArrangement');
         checkHR = localStorage.getItem('empData');
         if (checkHR.dept == 'HR') {
-          const response = await axios.get('http://48.218.168.55:5000/arrangement');
+          const response = await axios.get(
+            'https://earnest-grace-production-04af.up.railway.app/arrangement',
+          );
           localStorage.setItem('arrangement', JSON.stringify(response.data));
         }
       } catch (error) {
@@ -315,7 +316,6 @@ export default {
 
     // fetch the WFH details for a specific day
     getWFHForDay(day) {
-
       // In case there is no wfh for that employee, just return. Otherwise calendar breaks
       if (!Array.isArray(this.wfhDetails)) {
         // console.error("wfhDetails is not an array or is null.");

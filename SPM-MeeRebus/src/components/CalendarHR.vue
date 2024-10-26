@@ -4,7 +4,9 @@
       <div class="col-md-12">
         <!-- Header for the Month and Year with Dropdowns -->
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <button class="btn btn-primary" @click="previousMonth">Previous</button>
+          <button class="btn btn-primary" @click="previousMonth">
+            Previous
+          </button>
 
           <!-- Month Dropdown -->
           <div class="dropdown">
@@ -17,11 +19,14 @@
             >
               {{ currentMonth }}
             </button>
-            <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownMonth">
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="dropdownMonth"
+            >
               <li v-for="(month, index) in months" :key="month">
-                <a 
-                  class="dropdown-item" 
-                  href="#" 
+                <a
+                  class="dropdown-item"
+                  href="#"
                   @click="selectMonth(index)"
                   data-bs-dismiss="dropdown"
                 >
@@ -42,11 +47,14 @@
             >
               {{ currentYear }}
             </button>
-            <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownYear">
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="dropdownYear"
+            >
               <li v-for="year in years" :key="year">
-                <a 
-                  class="dropdown-item" 
-                  href="#" 
+                <a
+                  class="dropdown-item"
+                  href="#"
                   @click="selectYear(year)"
                   data-bs-dismiss="dropdown"
                 >
@@ -63,131 +71,155 @@
               id="dropdownTeam"
               data-bs-toggle="dropdown"
               aria-expanded="false"
-              >
-                {{ selectedTeam }}
-              </button>
-              <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownTeam">
-                <li v-for="team in teams" :key="team">
-                  <a class="dropdown-item" 
-                  href="#" @click="selectTeam(team)" data-bs-dismiss="dropdown">
-          {{ team }}
-        </a>
-      </li>
-    </ul>
-  </div>
-  <!-- New Conditional Dropdown for systems solutioning Team -->
-  <div v-if="selectedTeam === 'System Solutioning'" class="dropdown">
-      <button
-        class="btn btn-secondary dropdown-toggle"
-        type="button"
-        id="dropdownsyssTeam"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-      >
-        {{ selectedsyssTeam }}
-      </button>
-      <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownsyssTeam">
-        <li v-for="syssTeam in syssTeams" :key="syssTeam">
-          <a class="dropdown-item" 
-            href="#" 
-            @click="selectsyssTeam(syssTeam)" 
-            data-bs-dismiss="dropdown">
-            {{ syssTeam }}
-          </a>
-        </li>
-      </ul>
-    </div>
+            >
+              {{ selectedTeam }}
+            </button>
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="dropdownTeam"
+            >
+              <li v-for="team in teams" :key="team">
+                <a
+                  class="dropdown-item"
+                  href="#"
+                  @click="selectTeam(team)"
+                  data-bs-dismiss="dropdown"
+                >
+                  {{ team }}
+                </a>
+              </li>
+            </ul>
+          </div>
+          <!-- New Conditional Dropdown for systems solutioning Team -->
+          <div v-if="selectedTeam === 'System Solutioning'" class="dropdown">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="dropdownsyssTeam"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              {{ selectedsyssTeam }}
+            </button>
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="dropdownsyssTeam"
+            >
+              <li v-for="syssTeam in syssTeams" :key="syssTeam">
+                <a
+                  class="dropdown-item"
+                  href="#"
+                  @click="selectsyssTeam(syssTeam)"
+                  data-bs-dismiss="dropdown"
+                >
+                  {{ syssTeam }}
+                </a>
+              </li>
+            </ul>
+          </div>
 
-    <!-- New Conditional Dropdown for engineering Team -->
-  <div v-else-if="selectedTeam === 'Engineering'" class="dropdown">
-      <button
-        class="btn btn-secondary dropdown-toggle"
-        type="button"
-        id="dropdownengTeam"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-      >
-        {{ selectedengTeam }}
-      </button>
-      <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownengTeam">
-        <li v-for="engTeam in engTeams" :key="engTeam">
-          <a class="dropdown-item" 
-            href="#" 
-            @click="selectengTeam(engTeam)" 
-            data-bs-dismiss="dropdown">
-            {{ engTeam }}
-          </a>
-        </li>
-      </ul>
-    </div>
+          <!-- New Conditional Dropdown for engineering Team -->
+          <div v-else-if="selectedTeam === 'Engineering'" class="dropdown">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="dropdownengTeam"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              {{ selectedengTeam }}
+            </button>
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="dropdownengTeam"
+            >
+              <li v-for="engTeam in engTeams" :key="engTeam">
+                <a
+                  class="dropdown-item"
+                  href="#"
+                  @click="selectengTeam(engTeam)"
+                  data-bs-dismiss="dropdown"
+                >
+                  {{ engTeam }}
+                </a>
+              </li>
+            </ul>
+          </div>
 
-    <!-- New Conditional Dropdown for HR Team -->
-  <div v-else-if="selectedTeam === 'HR'" class="dropdown">
-      <button
-        class="btn btn-secondary dropdown-toggle"
-        type="button"
-        id="dropdownhrTeam"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-      >
-        {{ selectedhrTeam }}
-      </button>
-      <ul class="dropdown-menu scrollable-dropdown" aria-labelledby="dropdownhrTeam">
-        <li v-for="hrTeam in hrTeams" :key="hrTeam">
-          <a class="dropdown-item" 
-            href="#" 
-            @click="selectengTeam(hrTeam)" 
-            data-bs-dismiss="dropdown">
-            {{ hrTeam }}
-          </a>
-        </li>
-      </ul>
-    </div>
-    <button class="btn btn-primary" @click="nextMonth">Next</button>
-  </div>
+          <!-- New Conditional Dropdown for HR Team -->
+          <div v-else-if="selectedTeam === 'HR'" class="dropdown">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              id="dropdownhrTeam"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              {{ selectedhrTeam }}
+            </button>
+            <ul
+              class="dropdown-menu scrollable-dropdown"
+              aria-labelledby="dropdownhrTeam"
+            >
+              <li v-for="hrTeam in hrTeams" :key="hrTeam">
+                <a
+                  class="dropdown-item"
+                  href="#"
+                  @click="selectengTeam(hrTeam)"
+                  data-bs-dismiss="dropdown"
+                >
+                  {{ hrTeam }}
+                </a>
+              </li>
+            </ul>
+          </div>
+          <button class="btn btn-primary" @click="nextMonth">Next</button>
         </div>
+      </div>
 
-        <!-- Days of the Week -->
-        <div class="row text-center bg-light mb-2">
-          <div class="col day-header" v-for="day in daysOfWeek" :key="day">{{ day }}</div>
+      <!-- Days of the Week -->
+      <div class="row text-center bg-light mb-2">
+        <div class="col day-header" v-for="day in daysOfWeek" :key="day">
+          {{ day }}
         </div>
+      </div>
 
-        <!-- Days of the Month -->
-        <div class="calendar-grid">
-          <!-- Empty cells for previous month's days -->
-          <div
-            class="day-box"
-            v-for="n in firstDayOfMonth"
-            :key="'empty-' + n"
-          ></div>
+      <!-- Days of the Month -->
+      <div class="calendar-grid">
+        <!-- Empty cells for previous month's days -->
+        <div
+          class="day-box"
+          v-for="n in firstDayOfMonth"
+          :key="'empty-' + n"
+        ></div>
 
-          <!-- Render days of the current month -->
-          <div
-            class="day-box border"
-            v-for="day in daysInMonth"
-            :key="day"
-            @click="selectDate(day)"
-            :class="{ 
-              'selected-day': isSelectedDay(day),
-              'today-border': isToday(day),
-              'arranged-day': isArrangedDay(day) !== null
-
-            }"
-            :style="{ backgroundColor: getArrangementColor(day) }"
-          > 
+        <!-- Render days of the current month -->
+        <div
+          class="day-box border"
+          v-for="day in daysInMonth"
+          :key="day"
+          @click="selectDate(day)"
+          :class="{
+            'selected-day': isSelectedDay(day),
+            'today-border': isToday(day),
+            'arranged-day': isArrangedDay(day) !== null,
+          }"
+          :style="{ backgroundColor: getArrangementColor(day) }"
+        >
           <!-- Insert arrangement details here. Reason, etc -->
           <div v-if="isArrangedDayObj(day) !== null">
-            <p><strong>Staff ID: </strong> {{ isArrangedDayObj(day).staff_id }}</p>
+            <p>
+              <strong>Staff ID: </strong> {{ isArrangedDayObj(day).staff_id }}
+            </p>
             <p><strong>Reason:</strong> {{ isArrangedDayObj(day).reason }}</p>
             <p><strong>Status:</strong> {{ isArrangedDayObj(day).status }}</p>
           </div>
           <!-- :style="{backgroundColor: isToday(day) ? 'white' : ''}" OLD STYLE -->
-            <div class="day-content">{{ day }}</div>
-          </div>
+          <div class="day-content">{{ day }}</div>
         </div>
       </div>
     </div>
-  
+  </div>
 
   <main>
     <Calendar :wfh-details="approvedWFHDetails" />
@@ -257,21 +289,52 @@ export default {
       selectedDate: today,
       currentYear: today.getFullYear(),
       currentMonthIndex: today.getMonth(),
-      daysOfWeek: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      daysOfWeek: [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+      ],
       months: [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
       ],
       years: this.generateYears(),
       arrangements: [],
-      teams: ['Sales', 'Consultancy', 'System Solutioning', 'Engineering','HR', 'Finance', 'IT'],
+      teams: [
+        'Sales',
+        'Consultancy',
+        'System Solutioning',
+        'Engineering',
+        'HR',
+        'Finance',
+        'IT',
+      ],
       selectedTeam: 'HR',
       syssTeams: ['Developers', 'Support Team'],
       selectedsyssTeam: 'Developers',
-      engTeams: ['Senior Engineers', 'Junior Engineers', 'Call Centre', 'Operation Planning Team'],
+      engTeams: [
+        'Senior Engineers',
+        'Junior Engineers',
+        'Call Centre',
+        'Operation Planning Team',
+      ],
       selectedengTeam: 'Senior Engineers',
       hrTeams: ['HR Team', 'L&D team', 'Admin Team'],
-      selectedhrTeam: 'HR Team'
+      selectedhrTeam: 'HR Team',
     };
   },
   computed: {
@@ -282,7 +345,7 @@ export default {
       return new Date(
         this.currentYear,
         this.currentMonthIndex + 1,
-        0
+        0,
       ).getDate();
     },
     firstDayOfMonth() {
@@ -292,9 +355,9 @@ export default {
 
   mounted() {
     // this.checkArrangementData(); // Check for arrangements on mount
-    const staff_id = localStorage.getItem("employeeId")
+    const staff_id = localStorage.getItem('employeeId');
     // this.checkTeamArrangementData(staff_id) // Check for team arrangemetns on mount
-    this.checkCompanyArrangementData()
+    this.checkCompanyArrangementData();
   },
 
   methods: {
@@ -303,78 +366,92 @@ export default {
       if (storedArrangements) {
         // this.arrangements = JSON.parse(storedArrangements);
       } else {
-        // await this.fetchArrangementData(); 
+        // await this.fetchArrangementData();
       }
     },
     async checkCompanyArrangementData() {
-      try{
-        const response = await axios.get(`http://48.218.168.55:5000/arrangement`);
-        localStorage.setItem("companyArrangements", JSON.stringify(response.data))
-        this.arrangements = response.data
-        console.log(this.arrangements)
-      }catch (error){
-        console.error("Error fetching data:", error);
+      try {
+        const response = await axios.get(
+          `https://earnest-grace-production-04af.up.railway.app/arrangement`,
+        );
+        localStorage.setItem(
+          'companyArrangements',
+          JSON.stringify(response.data),
+        );
+        this.arrangements = response.data;
+        console.log(this.arrangements);
+      } catch (error) {
+        console.error('Error fetching data:', error);
       }
     },
     isArrangedDay(day) {
-        // Creating the string for the date to do checking with the arrangement date
-        const formattedDate = `${this.currentYear}-${String(this.currentMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
-        const arrangement = this.arrangements.find(arrangement => {
-            const arrangementDate = new Date(arrangement.date);
-            if (!isNaN(arrangementDate.getTime())) { 
-                const arrangementISO = arrangementDate.toISOString().split('T')[0];
-                return arrangementISO === formattedDate; // Check for matching date
-            }
-            return false; // Skip invalid dates
-        });
-        // Return status or null if no arrangement
-        return arrangement ? arrangement.status : null; 
+      // Creating the string for the date to do checking with the arrangement date
+      const formattedDate = `${this.currentYear}-${String(
+        this.currentMonthIndex + 1,
+      ).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      const arrangement = this.arrangements.find((arrangement) => {
+        const arrangementDate = new Date(arrangement.date);
+        if (!isNaN(arrangementDate.getTime())) {
+          const arrangementISO = arrangementDate.toISOString().split('T')[0];
+          return arrangementISO === formattedDate; // Check for matching date
+        }
+        return false; // Skip invalid dates
+      });
+      // Return status or null if no arrangement
+      return arrangement ? arrangement.status : null;
     },
     // Using this for conditional rendering in the V-if. Might refactor with above code if have time
     isArrangedDayObj(day) {
-        // Creating the string for the date to do checking with the arrangement date
-        const formattedDate = `${this.currentYear}-${String(this.currentMonthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
-        const arrangement = this.arrangements.find(arrangement => {
-            const arrangementDate = new Date(arrangement.date);
-            if (!isNaN(arrangementDate.getTime())) { 
-                const arrangementISO = arrangementDate.toISOString().split('T')[0];
-                return arrangementISO === formattedDate; // Check for matching date
-            }
-            return false; // Skip invalid dates
-        });
-        // Return status or null if no arrangement
-        return arrangement || null; 
+      // Creating the string for the date to do checking with the arrangement date
+      const formattedDate = `${this.currentYear}-${String(
+        this.currentMonthIndex + 1,
+      ).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      const arrangement = this.arrangements.find((arrangement) => {
+        const arrangementDate = new Date(arrangement.date);
+        if (!isNaN(arrangementDate.getTime())) {
+          const arrangementISO = arrangementDate.toISOString().split('T')[0];
+          return arrangementISO === formattedDate; // Check for matching date
+        }
+        return false; // Skip invalid dates
+      });
+      // Return status or null if no arrangement
+      return arrangement || null;
     },
 
     // Set the CSS colour depending on arrangement status
     getArrangementColor(day) {
-        const status = this.isArrangedDay(day);
-        
-        if (status === 1) {
-            return 'lightgreen'; // Accepted arrangements
-        } else if (status === 0) {
-            return 'orange'; // Pending arrangements
-        } else if (status === 2) {
-            return 'red'; // Denied arrangements
-        }
-        
-        return ''; // Default background color (no arrangements)
+      const status = this.isArrangedDay(day);
+
+      if (status === 1) {
+        return 'lightgreen'; // Accepted arrangements
+      } else if (status === 0) {
+        return 'orange'; // Pending arrangements
+      } else if (status === 2) {
+        return 'red'; // Denied arrangements
+      }
+
+      return ''; // Default background color (no arrangements)
     },
     async fetchArrangementData() {
       try {
-        // const response = await axios.get('http://48.218.168.55:5000/arrangement');
+        // const response = await axios.get('https://earnest-grace-production-04af.up.railway.app/arrangement');
         // this.arrangements = response.data;
         localStorage.getItem('empArrangement');
-        checkHR = localStorage.getItem("empData")
-        if (checkHR.dept == "HR" || checkHR.position == "MD" || checkHR.position == "Director" ){
-          const response = await axios.get('http://48.218.168.55:5000/arrangement')
+        checkHR = localStorage.getItem('empData');
+        if (
+          checkHR.dept == 'HR' ||
+          checkHR.position == 'MD' ||
+          checkHR.position == 'Director'
+        ) {
+          const response = await axios.get(
+            'https://earnest-grace-production-04af.up.railway.app/arrangement',
+          );
           localStorage.setItem('arrangement', JSON.stringify(response.data));
         }
-
       } catch (error) {
-        console.error("Error fetching arrangement data:", error);
+        console.error('Error fetching arrangement data:', error);
       }
     },
 
@@ -398,7 +475,7 @@ export default {
       this.selectedDate = new Date(
         this.currentYear,
         this.currentMonthIndex,
-        day
+        day,
       );
     },
     isToday(day) {
@@ -434,11 +511,9 @@ export default {
       this.selectedTeam = team;
       if (team !== 'System Solutioning') {
         this.selectedsyssTeam = 'Developers'; // Reset sys team selection when not IT
-      }
-      else if (team !== 'Engineering') {
+      } else if (team !== 'Engineering') {
         this.selectedengTeam = 'Senior Engineers'; // Reset eng team selection when not IT
-      }
-      else if (team !== 'HR') {
+      } else if (team !== 'HR') {
         this.selectedhrTeam = 'HR Team'; // Reset hr team selection when not IT
       }
     },
@@ -455,11 +530,7 @@ export default {
 };
 </script>
 
-
 <style scoped>
-
-
-
 /* Calendar Container spans 100% of the width */
 .calendar-container {
   width: 80vw;
@@ -499,8 +570,8 @@ export default {
 
 /* Colour for approved WFH */
 .arranged-day {
-    background-color: lightgreen;
-    border: 2px solid darkgreen;
+  background-color: lightgreen;
+  border: 2px solid darkgreen;
 }
 
 /* Highlight today's date with a border */
@@ -554,7 +625,6 @@ export default {
   border-radius: 4px;
 }
 
-
 /* Styling for the table */
 .table-container {
   margin: 20px auto;
@@ -585,6 +655,4 @@ export default {
   text-align: center;
   margin-bottom: 10px;
 }
-
-
 </style>

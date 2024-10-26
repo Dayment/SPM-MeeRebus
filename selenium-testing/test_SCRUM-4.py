@@ -41,7 +41,7 @@ def test_navigation():
     time.sleep(2)
 
     # 6) Find the row with <td>11/1/2024, 9:00:00 AM</td> and get the Cancel button
-    reset_url = "http://48.218.168.55:5000/arrangement/test_scrum_8_reset_arrangement_status/10"
+    reset_url = "https://earnest-grace-production-04af.up.railway.app/arrangement/test_scrum_8_reset_arrangement_status/10"
     response = requests.put(reset_url)
 
     if response.status_code == 200:
@@ -69,7 +69,7 @@ def test_navigation():
         print("Error: Cancel button is still present.")
 
     # 8) Reset the arrangement with arrangement_id=10 via API call
-    reset_url = "http://48.218.168.55:5000/arrangement/test_scrum_8_reset_arrangement_status/10"
+    reset_url = "https://earnest-grace-production-04af.up.railway.app/arrangement/test_scrum_8_reset_arrangement_status/10"
     response = requests.put(reset_url)
 
     if response.status_code == 200:
