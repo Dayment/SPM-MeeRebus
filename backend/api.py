@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from werkzeug.utils import secure_filename #10/10 cybersecurity
 import time
 from flask_mail import Mail, Message
+from flask_talisman import Talisman
 
 
 
@@ -22,7 +23,9 @@ def create_app(test_config=None):
     global supabase
     
     app = Flask(__name__)
-    CORS(app, origins = ["https://spm-mee-rebus.vercel.app"])
+    # CORS(app)
+    Talisman(app, force_https=True)
+    CORS(app, origins=["https://spm-mee-rebus.vercel.app"])
     load_dotenv()
 
     if test_config is not None:
@@ -513,6 +516,7 @@ def create_app(test_config=None):
                     return jsonify({"error": "Failed to approve the arrangement."}), 500
             else:
                 return jsonify({"error": "Arrangement not found."}), 404
+                
 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
