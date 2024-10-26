@@ -33,6 +33,7 @@ a,
     /* if we uncomment this the navbar wont work */
     /* display: flex; */
     /* place-items: center; */
+    background-color: white;
   }
 
   #app {
