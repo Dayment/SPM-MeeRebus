@@ -5,6 +5,7 @@ on:
     branches: [ main, test-ci ]
   pull_request:
     branches: [ main, test-ci ]
+  workflow_dispatch: # Allows manual trigger of the workflow for production deployment
 
 permissions:
   contents: write
@@ -43,32 +44,21 @@ jobs:
       # Deploy to Vercel (Preview) and capture DEPLOYMENT_URL
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
+        if: github.ref != 'refs/heads/main'  # Only deploy to preview on non-main branches
         working-directory: ./SPM-MeeRebus
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          # Deploy to Vercel and capture output (stdout and stderr)
           DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID 2>&1)
-          EXIT_CODE=$?
           echo "Deployment Output:"
           echo "$DEPLOYMENT_OUTPUT"
 
-          # Extract the deployment URL from the 'Preview:' line
-          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep '^Preview:' | awk '{ print $2 }')
-          echo "Deployment URL: $DEPLOYMENT_URL"
+      # Run your tests (e.g., Selenium or any other test suites) here
+      # Assuming your tests are set up after deploying to Preview
 
-          # Check if DEPLOYMENT_URL is empty
-          if [ -z "$DEPLOYMENT_URL" ]; then
-            echo "Failed to obtain deployment URL."
-            exit 1
-          fi
-
-          # Set the deployment URL as an environment variable for subsequent steps
-          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
-
-      # Set up Python 3.8
+      # Set up Python 3.8 for testing (keep your existing setup as is)
       - name: Set up Python 3.8
         uses: actions/setup-python@v4
         with:
@@ -86,4 +76,21 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
-          # Install Google
+
+      # Run integration tests (e.g., using Selenium) after deployment to preview
+      - name: Run Selenium Tests
+        working-directory: ./selenium-testing
+        run: |
+          # Run Selenium tests
+          python -m unittest discover
+
+      # Deploy to Vercel (Production) after successful tests
+      - name: Deploy to Vercel (Production)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test-ci' || github.event_name == 'workflow_dispatch'
+        working-directory: ./SPM-MeeRebus
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel --prod --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID

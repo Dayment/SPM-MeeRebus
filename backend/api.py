@@ -22,7 +22,7 @@ def create_app(test_config=None):
     global supabase
     
     app = Flask(__name__)
-    CORS(app)
+    CORS(app, origins = ["https://spm-mee-rebus.vercel.app"])
     load_dotenv()
 
     if test_config is not None:
