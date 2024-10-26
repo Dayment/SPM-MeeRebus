@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 from datetime import datetime, timedelta
+import os
 
 # Set up Chrome WebDriver
 driver = webdriver.Chrome()
@@ -59,7 +60,10 @@ def verify_table_results(team, sub_team=None):
 def test_navigation():
     driver.maximize_window()
     # Visit the local page
-    driver.get("http://48.218.168.55:5173")  # Update this URL to your actual local setup
+    base_url = os.getenv("BASE_URL")
+
+    # 1) Go to the URL from the environment variable
+    driver.get(base_url)  # Update this URL to your actual local setup
 
     # Wait for the employee ID input field and enter employee ID
     emp_id_input = WebDriverWait(driver, 10).until(

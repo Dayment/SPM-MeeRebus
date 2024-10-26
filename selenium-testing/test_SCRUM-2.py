@@ -7,15 +7,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+import os
 
 def test_navigation():
-    url = "http://48.218.168.55:5173/"
+    base_url = os.getenv("BASE_URL")
 
     driver = webdriver.Chrome()
     driver.maximize_window()
 
     try:
-        driver.get(url)
+        base_url = os.getenv("BASE_URL")
+
+    # 1) Go to the URL from the environment variable
+        driver.get(base_url)
         
         # Find the input element by id and type in the employee ID
         emp_id_input = driver.find_element(By.ID, "empId")

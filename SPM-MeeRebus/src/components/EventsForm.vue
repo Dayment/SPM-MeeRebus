@@ -162,7 +162,7 @@ export default {
         const empId = localStorage.getItem('employeeId');
         await axios
           .post(
-            'https://earnest-grace-production-04af.up.railway.app/create-event',
+            `${import.meta.env.VITE_BACKEND_URL}/create-event`,
             {
               date: this.selectedDate,
               empId: empId,

@@ -9,18 +9,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def test_navigation():
-    url = "http://48.218.168.55:5173/"
+    base_url = os.getenv("BASE_URL")
 
     driver = webdriver.Chrome()
     driver.maximize_window()
 
-    driver.get(url)
+    driver.get(base_url)
     
     # Find the input element by id and type in the employee ID
     emp_id_input = driver.find_element(By.ID, "empId")
@@ -55,7 +56,7 @@ def test_navigation():
     # Wait for a bit
     time.sleep(2)
 
-    reset_url = "https://earnest-grace-production-04af.up.railway.app/arrangement/test_scrum_8_reset_arrangement_status/63"
+    reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/63"
     response = requests.put(reset_url)
 
     if response.status_code == 200:
@@ -89,7 +90,7 @@ def test_navigation():
         raise Exception("Error: Approve button is still present.")
 
 
-    reset_url = "https://earnest-grace-production-04af.up.railway.app/arrangement/test_scrum_8_reset_arrangement_status/63"
+    reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/63"
     response = requests.put(reset_url)
 
     if response.status_code == 200:
@@ -126,7 +127,7 @@ def test_navigation():
 
     time.sleep(2)
 
-    reset_url = "https://earnest-grace-production-04af.up.railway.app/arrangement/test_scrum_8_reset_arrangement_status/63"
+    reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/63"
     response = requests.put(reset_url)
 
     if response.status_code == 200:

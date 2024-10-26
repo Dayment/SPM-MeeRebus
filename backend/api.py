@@ -23,9 +23,8 @@ def create_app(test_config=None):
     global supabase
     
     app = Flask(__name__)
-    # CORS(app)
-    Talisman(app, force_https=True)
     CORS(app)
+    # Talisman(app, force_https=True)
     load_dotenv()
 
     if test_config is not None:
