@@ -308,7 +308,7 @@ export default {
     },
     async checkCompanyArrangementData() {
       try{
-        const response = await axios.get(`http://127.0.0.1:5000/arrangement`);
+        const response = await axios.get(`http://48.218.168.55:5000/arrangement`);
         localStorage.setItem("companyArrangements", JSON.stringify(response.data))
         this.arrangements = response.data
         console.log(this.arrangements)
@@ -364,12 +364,12 @@ export default {
     },
     async fetchArrangementData() {
       try {
-        // const response = await axios.get('http://127.0.0.1:5000/arrangement');
+        // const response = await axios.get('http://48.218.168.55:5000/arrangement');
         // this.arrangements = response.data;
         localStorage.getItem('empArrangement');
         checkHR = localStorage.getItem("empData")
         if (checkHR.dept == "HR" || checkHR.position == "MD" || checkHR.position == "Director" ){
-          const response = await axios.get('http://127.0.0.1:5000/arrangement')
+          const response = await axios.get('http://48.218.168.55:5000/arrangement')
           localStorage.setItem('arrangement', JSON.stringify(response.data));
         }
 

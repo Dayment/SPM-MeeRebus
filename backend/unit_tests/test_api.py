@@ -217,7 +217,8 @@ class FlaskAPITestCase(unittest.TestCase):
         # This is basically arrangement_response
         # Mock the Supabase response for fetching the arrangement
         arrangement_response = self.mock_supabase.table().select().eq().single().execute.return_value = MagicMock(data=mock_arrangement_data)
-        
+        self.mock_supabase.table('employee').select('reporting_manager', 'email', 'staff_fname', 'staff_lname').eq('staff_id', staff_id).single().execute.return_value = MagicMock(data=mock_employee_data)
+
         # Mock the Supabase response for updating the arrangement status
         self.mock_supabase.table().update().eq().execute.return_value = MagicMock(data={"status": 3,"reason_man": "Self cancelled / withdrawn"})
 

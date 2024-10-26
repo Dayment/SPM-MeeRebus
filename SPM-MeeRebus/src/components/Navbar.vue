@@ -5,8 +5,8 @@
           <button
               class="navbar-toggler"
               type="button"
-              data-toggle="collapse"
-              data-target="#navbarNav"
+              data-bs-toggle="collapse"
+              data-bs-target="#navbarNav"
               aria-controls="navbarNav"
               aria-expanded="false"
               aria-label="Toggle navigation"
@@ -29,7 +29,7 @@
                   </li>
                   <li class="nav-item">
                       <a class="nav-link" href="/team">Team Schedule</a>
-                  </li> -->
+                  </li> --> 
 
                   <li class="nav-item dropdown" v-if="showTeamDropdown">
                     <button class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">

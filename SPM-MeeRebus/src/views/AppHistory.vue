@@ -43,7 +43,7 @@ onMounted(async () => {
         const test = JSON.parse(employeedata)
         const staff_id = test.staff_id
         try {
-            const response = await axios.get(`http://127.0.0.1:5000/arrangement/emp/${staff_id}`);
+            const response = await axios.get(`http://48.218.168.55:5000/arrangement/emp/${staff_id}`);
             localStorage.setItem('empArrangement', JSON.stringify(response.data));
             const storedArrangements = localStorage.getItem('empArrangement');
             arrangements.value = JSON.parse(storedArrangements);
@@ -91,7 +91,7 @@ const getTimeLabel = (time)  => {
 
 const cancelArrangement = async (arrangementId) => {
     try {
-        const response = await axios.put(`http://localhost:5000/arrangement/cancel/${arrangementId}`);
+        const response = await axios.put(`http://48.218.168.55:5000/arrangement/cancel/${arrangementId}`);
         if (response.status === 200) {
             // Update the local state to reflect the change (for demo purposes only)
             const arrangement = arrangements.value.find(a => a.arrangement_id === arrangementId);

@@ -9,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
 def test_navigation():
-    url = "http://localhost:5173/"
+    url = "http://48.218.168.55:5173/"
 
     driver = webdriver.Chrome()
     driver.maximize_window()

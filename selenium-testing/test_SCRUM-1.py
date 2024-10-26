@@ -11,7 +11,7 @@ def test_apply_wfh_arrangement():
 
     try:
         # Go to the main page
-        driver.get("http://localhost:5173/")
+        driver.get("http://48.218.168.55:5173/")
 
         # Wait for the employee ID input field and enter employee ID (similar to tscrum 4)
         emp_id_input = WebDriverWait(driver, 10).until(

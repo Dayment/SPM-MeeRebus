@@ -11,10 +11,10 @@ from selenium.common.exceptions import TimeoutException
 
 
 def test_navigation():
-    url = "http://localhost:5173/"
+    url = "http://48.218.168.55:5173/"
 
     browser = webdriver.Chrome()
-    browser.get("http://localhost:5173/")
+    browser.get("http://48.218.168.55:5173/")
 
 
     # Find the input element by id and type in the employee ID

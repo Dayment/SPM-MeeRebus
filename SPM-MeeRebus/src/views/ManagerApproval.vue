@@ -25,20 +25,20 @@ const timeOptions = [
 ];
 
 onMounted(async () => {
-  const employeedata = localStorage.getItem('employeeData');
-  if (employeedata) {
-    const test = JSON.parse(employeedata);
-    const staff_id = test.staff_id;
-    try {
-      const response = await axios.get(
-        `http://127.0.0.1:5000/manager/underlings/${staff_id}`,
-      );
-      localStorage.setItem('teamArrangement', JSON.stringify(response.data));
-      const storedArrangements = localStorage.getItem('teamArrangement');
-      console.log(JSON.parse(storedArrangements));
-      arrangements.value = JSON.parse(storedArrangements);
-    } catch {}
-  }
+    const employeedata = localStorage.getItem('employeeData');
+    if (employeedata) {
+        const test = JSON.parse(employeedata)
+        const staff_id = test.staff_id
+        try {
+            const response = await axios.get(`http://48.218.168.55:5000/manager/underlings/${staff_id}`);
+            localStorage.setItem('teamArrangement', JSON.stringify(response.data));
+            const storedArrangements = localStorage.getItem('teamArrangement');
+            console.log(JSON.parse(storedArrangements));
+            arrangements.value = JSON.parse(storedArrangements);
+        }catch{
+
+        }
+    }
 });
 
 const filteredArrangements = computed(() => {
@@ -99,22 +99,18 @@ const getTimeLabel = (time) => {
 };
 
 const approveArrangement = async (arrangementId) => {
-  try {
-    const response = await axios.put(
-      `http://localhost:5000/arrangement/approve/${arrangementId}`,
-    );
-    if (response.status === 200) {
-      // Update the local state to reflect the change (for demo purposes only)
-      const arrangement = arrangements.value.find(
-        (a) => a.arrangement_id === arrangementId,
-      );
-      if (arrangement) {
-        arrangement.status = 1; // Set status to 'Approved'
-      }
+    try {
+        const response = await axios.put(`http://48.218.168.55:5000/arrangement/approve/${arrangementId}`);
+        if (response.status === 200) {
+            // Update the local state to reflect the change (for demo purposes only)
+            const arrangement = arrangements.value.find(a => a.arrangement_id === arrangementId);
+            if (arrangement) {
+                arrangement.status = 1; // Set status to 'Approved'
+            }
+        }
+    } catch (error) {
+        console.error("Error while approving arrangement: ", error);
     }
-  } catch (error) {
-    console.error('Error while approving arrangement: ', error);
-  }
 };
 
 const checkID = async (arrangementId) => {
@@ -123,31 +119,27 @@ const checkID = async (arrangementId) => {
 };
 
 const withdrawArrangement = async (reason) => {
-  try {
-    const payload = {
-      arrangement_id: selectedArrangementId.value,
-      arrangement_reason_man: reason,
-    };
-    console.log(payload.arrangement_id);
-
-    const response = await axios.put(
-      `http://localhost:5000/arrangement/manager/withdraw`,
-      payload,
-    );
-
-    if (response.status === 200) {
-      // Update the local state to reflect the change
-      const arrangement = arrangements.value.find(
-        (a) => a.arrangement_id === payload.arrangement_id,
-      );
-      if (arrangement) {
-        arrangement.status = 2;
-        arrangement.reason_man = payload.arrangement_reason_man; // Update the reason
-      }
+    try {
+        
+        const payload = {
+            arrangement_id: selectedArrangementId.value,
+            arrangement_reason_man: reason
+        };
+        console.log(payload.arrangement_id)
+        
+        const response = await axios.put(`http://48.218.168.55:5000/arrangement/manager/withdraw`, payload);
+        
+        if (response.status === 200) {
+            // Update the local state to reflect the change
+            const arrangement = arrangements.value.find(a => a.arrangement_id === payload.arrangement_id);
+            if (arrangement) {
+                arrangement.status = 2; 
+                arrangement.reason_man = payload.arrangement_reason_man; // Update the reason
+            }
+        }
+    } catch (error) {
+        console.error("Error while withdrawing arrangement: ", error);
     }
-  } catch (error) {
-    console.error('Error while withdrawing arrangement: ', error);
-  }
 };
 
 function formatDate(date) {

@@ -59,7 +59,7 @@ def verify_table_results(team, sub_team=None):
 def test_navigation():
     driver.maximize_window()
     # Visit the local page
-    driver.get("http://localhost:5173")  # Update this URL to your actual local setup
+    driver.get("http://48.218.168.55:5173")  # Update this URL to your actual local setup
 
     # Wait for the employee ID input field and enter employee ID
     emp_id_input = WebDriverWait(driver, 10).until(

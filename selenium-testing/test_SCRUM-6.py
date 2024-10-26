@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def test_navigation():
-    url = "http://localhost:5173/"
+    url = "http://48.218.168.55:5173/"
 
     driver = webdriver.Chrome()
     driver.maximize_window()
@@ -55,7 +55,7 @@ def test_navigation():
     # Wait for a bit
     time.sleep(2)
 
-    reset_url = "http://localhost:5000/arrangement/test_scrum_8_reset_arrangement_status/63"
+    reset_url = "http://48.218.168.55:5000/arrangement/test_scrum_8_reset_arrangement_status/63"
     response = requests.put(reset_url)
 
     if response.status_code == 200:
@@ -89,7 +89,7 @@ def test_navigation():
         raise Exception("Error: Approve button is still present.")
 
 
-    reset_url = "http://localhost:5000/arrangement/test_scrum_8_reset_arrangement_status/63"
+    reset_url = "http://48.218.168.55:5000/arrangement/test_scrum_8_reset_arrangement_status/63"
     response = requests.put(reset_url)
 
     if response.status_code == 200:
@@ -126,7 +126,7 @@ def test_navigation():
 
     time.sleep(2)
 
-    reset_url = "http://localhost:5000/arrangement/test_scrum_8_reset_arrangement_status/63"
+    reset_url = "http://48.218.168.55:5000/arrangement/test_scrum_8_reset_arrangement_status/63"
     response = requests.put(reset_url)
 
     if response.status_code == 200:

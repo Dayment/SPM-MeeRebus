@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://127.0.0.1:5000'; // move to env
+const API_BASE_URL = 'http://48.218.168.55:5000'; // move to env
 
 export const getAllEmployee = async () => {
   try {

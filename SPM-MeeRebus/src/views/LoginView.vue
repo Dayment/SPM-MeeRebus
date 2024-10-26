@@ -62,7 +62,7 @@ export default {
         },
         async checkValidID() {
             try {
-                const response = await axios.get(`http://127.0.0.1:5000/employee/${this.empId}`);
+                const response = await axios.get(`http://48.218.168.55:5000/employee/${this.empId}`);
                 localStorage.setItem('employeeData', JSON.stringify(response.data));
                 console.log(response.data);
                 
@@ -138,7 +138,7 @@ export default {
         },
         async getArrangementData() {
             try {
-                const response = await axios.get('http://127.0.0.1:5000/arrangement');
+                const response = await axios.get('http://48.218.168.55:5000/arrangement');
                 localStorage.setItem('arrangement', JSON.stringify(response.data));
                 console.log(response.data);  
             } catch (error) {
@@ -147,7 +147,7 @@ export default {
         },
         async getOwnArrangementData(staff_id) {
             try {
-                const response = await axios.get(`http://127.0.0.1:5000/arrangement/emp/${staff_id}`);
+                const response = await axios.get(`http://48.218.168.55:5000/arrangement/emp/${staff_id}`);
                 localStorage.setItem('empArrangement', JSON.stringify(response.data));
                 console.log(response.data);  
             } catch (error) {
@@ -156,7 +156,7 @@ export default {
         },
         async getOwnUnderlingData(staff_id) {
             try {
-                const response = await axios.get(`http://127.0.0.1:5000//manager/underlings/${staff_id}`);
+                const response = await axios.get(`http://48.218.168.55:5000//manager/underlings/${staff_id}`);
                 localStorage.setItem('teamData', JSON.stringify(response.data));
                 console.log(response.data);  
             } catch (error) {

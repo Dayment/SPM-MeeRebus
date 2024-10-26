@@ -8,7 +8,7 @@ export default {
     // Method to call the Flask API for employee
     async testApi() {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/employee');
+        const response = await axios.get('http://48.218.168.55:5000/employee');
         localStorage.setItem('employee', JSON.stringify(response.data));
         console.log(response.data);  
       } catch (error) {
@@ -19,7 +19,7 @@ export default {
     // Method to call the Flask API for arrangement
     async testApi2() {
       try {
-        const response = await axios.get('http://127.0.0.1:5000/arrangement');
+        const response = await axios.get('http://48.218.168.55:5000/arrangement');
         localStorage.setItem('arrangement', JSON.stringify(response.data));
         console.log(response.data);  
       } catch (error) {
