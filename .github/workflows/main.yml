@@ -41,68 +41,33 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      # Deploy to Vercel (Preview) and wait for completion
+      # Deploy to Vercel (Preview) and capture DEPLOYMENT_URL
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
-        if: github.ref == 'refs/heads/main'  # Only deploy to preview on non-main branches
+        if: github.ref == 'refs/heads/main'  # Deploy preview on main
         working-directory: ./SPM-MeeRebus
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          # Deploy to Vercel and get deployment ID
           DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID) || true
-          echo "Deployment Output:"
-          echo "$DEPLOYMENT_OUTPUT"
-
-          # Extract deployment ID from output
-          DEPLOYMENT_ID=$(echo "$DEPLOYMENT_OUTPUT" | grep -oE '[a-z0-9]{24}')
-          if [ -z "$DEPLOYMENT_ID" ]; then
-            echo "Warning: Failed to extract DEPLOYMENT_ID. Continuing with fallback..."
-          else
-            echo "Deployment ID: $DEPLOYMENT_ID"
-          fi
-
-          # Poll Vercel API until deployment is ready
-          for i in {1..10}; do
-            STATUS=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID" | jq -r '.readyState')
-            echo "Deployment Status: $STATUS"
-            if [ "$STATUS" = "READY" ]; then
-              DEPLOYMENT_URL=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID" | jq -r '.url')
-              echo "Deployment URL: https://$DEPLOYMENT_URL"
-              echo "PREVIEW_URL=https://$DEPLOYMENT_URL" >> $GITHUB_ENV
-              break
-            elif [ "$STATUS" = "ERROR" ]; then
-              echo "Deployment failed with status ERROR."
-              exit 1
-            else
-              echo "Deployment not ready, waiting..."
-              sleep 5
-            fi
-          done
-
-          # Verify if PREVIEW_URL was set
+          echo "Deployment Output: $DEPLOYMENT_OUTPUT"
+          
+          # Extract deployment URL from output
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -Eo 'https://[^ ]+\.vercel\.app')
           if [ -z "$DEPLOYMENT_URL" ]; then
-            echo "Warning: Deployment URL not found in time. Continuing with existing settings if available."
+            echo "Error: Deployment URL not found, exiting..."
+            exit 1
           fi
+          echo "Preview Deployment URL: $DEPLOYMENT_URL"
+          echo "PREVIEW_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
 
-      # Run integration tests
+      # Run tests with the deployment URL
       - name: Run Selenium Tests
         working-directory: ./
         env:
-          BASE_URL: ${{ env.PREVIEW_URL }}  # Use the preview URL for tests
+          BASE_URL: ${{ env.PREVIEW_URL }}
         run: |
           echo "Testing with BASE_URL: $BASE_URL"
           pytest selenium-testing/
-
-      # Deploy to Vercel (Production) after successful tests
-      - name: Deploy to Vercel (Production)
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test-ci' || github.event_name == 'workflow_dispatch'
-        working-directory: ./SPM-MeeRebus
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          vercel --prod --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID
