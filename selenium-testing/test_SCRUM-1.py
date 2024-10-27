@@ -6,31 +6,38 @@ from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
+from selenium.webdriver.chrome.options import Options
 
 load_dotenv()
 
 def test_apply_wfh_arrangement():
-    driver = webdriver.Chrome()
+    # Set up Chrome options for headless mode in CI
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run in headless mode
+    chrome_options.add_argument("--no-sandbox")  # Required for CI environments
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Prevents memory issues
+    chrome_options.add_argument("--disable-gpu")  # Optional, may improve CI performance
+
+    # Initialize Chrome WebDriver with options
+    driver = webdriver.Chrome(options=chrome_options)
     driver.maximize_window()
 
     try:
         # Go to the main page
         base_url = os.getenv("BASE_URL")
+        driver.get(base_url)  # Use URL from environment variable
 
-    # 1) Go to the URL from the environment variable
-        driver.get(base_url)
-
-        # Wait for the employee ID input field and enter employee ID (similar to tscrum 4)
+        # Wait for employee ID input field and enter employee ID
         emp_id_input = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "empId"))
         )
-        emp_id_input.send_keys("150065")  
+        emp_id_input.send_keys("150065")
 
         # Find and click the login button
         login_button = driver.find_element(By.CSS_SELECTOR, "button.btn.btn-primary.btn-block")
         login_button.click()
 
-        # Wait for the page to load after login (confirm by checking presence of an element)
+        # Wait for page to load after login
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CLASS_NAME, "calendar-container"))
         )
@@ -41,28 +48,22 @@ def test_apply_wfh_arrangement():
             EC.presence_of_element_located((By.CSS_SELECTOR, "a.nav-link[href='/apply']"))
         )
         apply_arrangement_link.click()
-
-        time.sleep(1)  
+        time.sleep(1)
         print("Apply Arrangement page loaded.")
 
-        # Select WFH Time (e.g., Full Day)
+        # Fill out WFH application form
         wfh_time_dropdown = driver.find_element(By.ID, "wfh-time")
         wfh_time_dropdown.send_keys("Full Day")
 
-        # Select WFH Date (e.g., 2 days from today to ensure it's valid)
         today = datetime.today()
-        future_date = today + timedelta(days=2)  
-        wfh_date_str = future_date.strftime('%d-%m-%Y')  
-
-        # Select WFH Date in the form
+        future_date = today + timedelta(days=2)
+        wfh_date_str = future_date.strftime('%d-%m-%Y')
         wfh_date_input = driver.find_element(By.ID, "days")
-        wfh_date_input.send_keys(wfh_date_str)  
+        wfh_date_input.send_keys(wfh_date_str)
 
-        # Enter a reason for WFH
         reason_input = driver.find_element(By.ID, "reason")
         reason_input.send_keys("Attending an online training session.")
 
-        # Select Request Type (e.g., Adhoc)
         request_type_dropdown = driver.find_element(By.ID, "request-type")
         request_type_dropdown.send_keys("Adhoc")
 

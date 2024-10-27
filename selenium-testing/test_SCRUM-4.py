@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -10,7 +11,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def test_navigation():
-    browser = webdriver.Chrome()
+    # Set up Chrome options for headless mode in CI
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run in headless mode
+    chrome_options.add_argument("--no-sandbox")  # Required for CI environments
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Prevents memory issues
+    chrome_options.add_argument("--disable-gpu")  # Optional, may improve CI performance
+
+    # Initialize Chrome WebDriver with options
+    browser = webdriver.Chrome(options=chrome_options)
 
     # Maximize the browser window
     browser.maximize_window()

@@ -8,21 +8,25 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
 
-
 def test_navigation():
     base_url = os.getenv("BASE_URL")
 
-    browser = webdriver.Chrome()
-    
+    # Set up Chrome options for headless mode in CI
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run in headless mode
+    chrome_options.add_argument("--no-sandbox")  # Required for CI environments
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Prevents memory issues
+    chrome_options.add_argument("--disable-gpu")  # Optional, may improve CI performance
 
+    # Initialize Chrome WebDriver with options
+    browser = webdriver.Chrome(options=chrome_options)
+    
     # 1) Go to the URL from the environment variable
     browser.get(base_url)
-
 
     # Find the input element by id and type in the employee ID
     emp_id_input = browser.find_element(By.ID, "empId")
@@ -79,3 +83,6 @@ def test_navigation():
             print("Next button not found.")
     else:
         print("Previous month navigation failed.")
+
+    # Close the browser after test
+    browser.quit()

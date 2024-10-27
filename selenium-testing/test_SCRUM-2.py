@@ -15,13 +15,19 @@ load_dotenv()
 def test_navigation():
     base_url = os.getenv("BASE_URL")
 
-    driver = webdriver.Chrome()
+    # Set up Chrome options for headless mode in CI
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")  # Run in headless mode
+    chrome_options.add_argument("--no-sandbox")  # Required for CI environments
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Prevents memory issues
+    chrome_options.add_argument("--disable-gpu")  # Optional, improves performance in CI
+
+    # Initialize Chrome WebDriver with options
+    driver = webdriver.Chrome(options=chrome_options)
     driver.maximize_window()
 
     try:
-        base_url = os.getenv("BASE_URL")
-
-    # 1) Go to the URL from the environment variable
+        # 1) Go to the URL from the environment variable
         driver.get(base_url)
         
         # Find the input element by id and type in the employee ID
