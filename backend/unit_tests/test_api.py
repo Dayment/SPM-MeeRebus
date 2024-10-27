@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import json
 import api
 
+
 class FlaskAPITestCase(unittest.TestCase):
     # Set up the Flask app ONCE. Reused during each test case, BUT DB is reset for each test case in setup(). Less overhead since not remaking Flask app each time
     # Some sort of issue happens when I have the Flask app and stuff made in setup
@@ -206,41 +207,43 @@ class FlaskAPITestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(json.loads(response.data), mock_data)
 
-    # def test_cancel_arrangement_success(self):
-    #     arrangement_id = 1
-    #     staff_id = 1
-    #     mock_arrangement_data = {
-    #         "arrangement_id": arrangement_id,
-    #         "staff_id": staff_id,
-    #         "status": 1 
-    #     }
-    #     # This is basically arrangement_response
-    #     # Mock the Supabase response for fetching the arrangement
-    #     arrangement_response = self.mock_supabase.table().select().eq().single().execute.return_value = MagicMock(data=mock_arrangement_data)
-    #     self.mock_supabase.table('employee').select('reporting_manager', 'email', 'staff_fname', 'staff_lname').eq('staff_id', staff_id).single().execute.return_value = MagicMock(data=mock_employee_data)
+    def test_cancel_arrangement_success(self):
+        arrangement_id = 1
+        staff_id = 1
+        mock_arrangement_data = {
+            "arrangement_id": arrangement_id,
+            "staff_id": staff_id,
+            "status": 1 
+        }
 
-    #     # Mock the Supabase response for updating the arrangement status
-    #     self.mock_supabase.table().update().eq().execute.return_value = MagicMock(data={"status": 3,"reason_man": "Self cancelled / withdrawn"})
+        mock_employee_data = {
+            "staff_id":staff_id,
+            "email": "employee@example.com",
+            "staff_fname": "John"
+        }
+        # This is basically arrangement_response
+        # Mock the Supabase response for fetching the arrangement
+        arrangement_response = self.mock_supabase.table().select().eq().single().execute.return_value = MagicMock(data=mock_arrangement_data)
+        self.mock_supabase.table('employee').select('reporting_manager', 'email', 'staff_fname', 'staff_lname').eq('staff_id', staff_id).single().execute.return_value = MagicMock(data=mock_employee_data)
 
-    #     mock_employee_data = {
-    #         "staff_id":staff_id,
-    #         "email": "employee@example.com",
-    #         "staff_fname": "John"
-    #     }
-    #     self.mock_supabase.table('employee').select('email, staff_fname').eq('staff_id', staff_id).single().execute.return_value = MagicMock(data=mock_employee_data)
+        # Mock the Supabase response for updating the arrangement status
+        self.mock_supabase.table().update().eq().execute.return_value = MagicMock(data={"status": 3,"reason_man": "Self cancelled / withdrawn"})
 
-    #     with patch('flask_mail.Mail.send') as mock_send:
-    #         response = self.client.put(f'/arrangement/cancel/{arrangement_id}')
-    #         self.assertEqual(response.status_code, 200)
 
-    #         mock_send.assert_called_once() # Make sure email sent once
-    #         sent_msg = mock_send.call_args[0][0]  # This is same as msg in the api or the Message class/object
-    #         self.assertEqual(sent_msg.subject, "WFH Application Cancelled")
-    #         self.assertEqual(sent_msg.sender, "notificationsallinone@gmail.com")
-    #         self.assertEqual(sent_msg.recipients, ["employee@example.com"]) # Need to come in as array
-    #         self.assertIn("Dear John,", sent_msg.body)  # Check that body contains the expected greeting
+        self.mock_supabase.table('employee').select('email, staff_fname').eq('staff_id', staff_id).single().execute.return_value = MagicMock(data=mock_employee_data)
 
-    #     self.assertEqual(json.loads(response.data), {"message": "Arrangement cancelled successfully."})
+        with patch('flask_mail.Mail.send') as mock_send:
+            response = self.client.put(f'/arrangement/cancel/{arrangement_id}')
+            self.assertEqual(response.status_code, 200)
+
+            mock_send.assert_called_once() # Make sure email sent once
+            sent_msg = mock_send.call_args[0][0]  # This is same as msg in the api or the Message class/object
+            self.assertEqual(sent_msg.subject, "WFH Application Cancelled")
+            self.assertEqual(sent_msg.sender, "notificationsallinone@gmail.com")
+            self.assertEqual(sent_msg.recipients, ["employee@example.com"]) # Need to come in as array
+            self.assertIn("Dear John,", sent_msg.body)  # Check that body contains the expected greeting
+
+        self.assertEqual(json.loads(response.data), {"message": "Arrangement cancelled successfully."})
 
 
     def test_cancel_arrangement_failure(self):
