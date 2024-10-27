@@ -27,10 +27,10 @@ jobs:
         with:
           node-version: '16'
 
-      # Install frontend dependencies
+      # Install frontend dependencies using npm ci for a clean install
       - name: Install frontend dependencies
         working-directory: ./SPM-MeeRebus
-        run: npm install
+        run: npm ci
 
       # Build the Vue app
       - name: Build the Vue app
@@ -41,95 +41,66 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      # Deploy to Vercel (Preview) and wait for completion
+      # Deploy to Vercel (Preview) and capture DEPLOYMENT_URL
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
-        if: github.ref == 'refs/heads/main'  # Only deploy to preview on non-main branches
+        if: github.ref == 'refs/heads/main'  # Deploy preview on main
         working-directory: ./SPM-MeeRebus
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          # Deploy to Vercel and get deployment ID
           DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID) || true
-          echo "Deployment Output:"
-          echo "$DEPLOYMENT_OUTPUT"
-
-          # Check if deployment output contains an error message
-          if [[ "$DEPLOYMENT_OUTPUT" == *"Error"* ]]; then
-            echo "Error detected in deployment output. Exiting..."
-            exit 1
-          fi
-
-          # Extract deployment ID from output
-          DEPLOYMENT_ID=$(echo "$DEPLOYMENT_OUTPUT" | grep -oE '[a-z0-9]{24}')
-          if [ -z "$DEPLOYMENT_ID" ]; then
-            echo "Failed to extract DEPLOYMENT_ID. Exiting..."
-            exit 1
-          fi
-          echo "Deployment ID: $DEPLOYMENT_ID"
-
-          # Poll Vercel API until deployment is ready
-          for i in {1..10}; do
-            STATUS=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID" | jq -r '.readyState')
-            echo "Deployment Status: $STATUS"
-            if [ "$STATUS" = "READY" ]; then
-              DEPLOYMENT_URL=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID" | jq -r '.url')
-              echo "Deployment URL: https://$DEPLOYMENT_URL"
-              echo "PREVIEW_URL=https://$DEPLOYMENT_URL" >> $GITHUB_ENV
-              break
-            elif [ "$STATUS" = "ERROR" ]; then
-              echo "Deployment failed with status ERROR."
-              exit 1
-            else
-              echo "Deployment not ready, waiting..."
-              sleep 5
-            fi
-          done
-
-          # Verify if PREVIEW_URL was set
+          echo "Deployment Output: $DEPLOYMENT_OUTPUT"
+          
+          # Extract deployment URL from output
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -Eo 'https://[^ ]+\.vercel\.app')
           if [ -z "$DEPLOYMENT_URL" ]; then
-            echo "Deployment did not complete in time. Exiting..."
+            echo "Error: Deployment URL not found, exiting..."
             exit 1
           fi
+          echo "Preview Deployment URL: $DEPLOYMENT_URL"
+          echo "PREVIEW_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
 
-      # Run your tests (e.g., Selenium or any other test suites) here
-
-      # Set up Python 3.8 for testing (keep your existing setup as is)
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-
-      # Install Python dependencies
+      # Install Python dependencies including pytest, selenium, and python-dotenv
       - name: Install Python dependencies
-        working-directory: ./selenium-testing
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install pytest selenium python-dotenv
 
       # Install Chrome and Chromedriver for Selenium
       - name: Install Chrome and Chromedriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
+          sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4 google-chrome-stable
+          wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip
+          unzip /tmp/chromedriver.zip -d /usr/local/bin/
 
-      # Run integration tests (e.g., using Selenium) after deployment to preview
+      # Run integration tests with Selenium
       - name: Run Selenium Tests
         working-directory: ./
         env:
-          BASE_URL: ${{ env.PREVIEW_URL }}  # Use the preview URL for tests
+          BASE_URL: ${{ env.PREVIEW_URL }}
         run: |
+          echo "Testing with BASE_URL: $BASE_URL"
           pytest selenium-testing/
 
-      # Deploy to Vercel (Production) after successful tests
+  deploy-prod:
+    needs: build-test-deploy  # Run this job only if tests pass
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'  # Deploy to production only from main
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      # Deploy to Vercel (Production)
       - name: Deploy to Vercel (Production)
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test-ci' || github.event_name == 'workflow_dispatch'
-        working-directory: ./SPM-MeeRebus
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          vercel --prod --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID
+        run: vercel --prod --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID
