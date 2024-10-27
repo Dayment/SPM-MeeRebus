@@ -63,10 +63,10 @@ jobs:
           echo "Preview Deployment URL: $DEPLOYMENT_URL"
           echo "PREVIEW_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
 
-      # Install Python dependencies including pytest and selenium
+      # Install Python dependencies including pytest, selenium, and python-dotenv
       - name: Install Python dependencies
         run: |
-          pip install pytest selenium
+          pip install pytest selenium python-dotenv
 
       # Install Chrome and Chromedriver for Selenium
       - name: Install Chrome and Chromedriver
