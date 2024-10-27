@@ -5,6 +5,9 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 from datetime import datetime, timedelta
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Set up Chrome WebDriver
 driver = webdriver.Chrome()

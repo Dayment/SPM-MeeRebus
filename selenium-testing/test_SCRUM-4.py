@@ -5,7 +5,9 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 import requests
 import os
-# Setup the WebDriver (ensure you have the right driver for your browser)
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def test_navigation():
     browser = webdriver.Chrome()

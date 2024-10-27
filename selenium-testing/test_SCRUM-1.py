@@ -5,6 +5,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime, timedelta
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def test_apply_wfh_arrangement():
     driver = webdriver.Chrome()
