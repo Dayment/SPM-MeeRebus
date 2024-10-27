@@ -261,7 +261,7 @@ function formatDate(date) {
                 data-bs-toggle="modal"
                 data-bs-target="#exampleModal"
               >
-                Withdraw Arrangement
+                Reject / Withdraw Arrangement
               </button>
 
               <!-- Modal -->
