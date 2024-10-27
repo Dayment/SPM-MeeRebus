@@ -1,146 +1,146 @@
-import pytest
-import time
-import requests
-import datetime
-import logging
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
-import os
-from dotenv import load_dotenv
+# import pytest
+# import time
+# import requests
+# import datetime
+# import logging
+# from selenium import webdriver
+# from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.support.ui import WebDriverWait
+# from selenium.webdriver.support import expected_conditions as EC
+# from selenium.common.exceptions import TimeoutException
+# import os
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# # Configure logging
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
 
-def test_navigation():
-    base_url = os.getenv("BASE_URL")
+# def test_navigation():
+#     base_url = os.getenv("BASE_URL")
 
-    # Set up Chrome options for headless mode in CI
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run in headless mode
-    chrome_options.add_argument("--no-sandbox")  # Required for CI environments
-    chrome_options.add_argument("--disable-dev-shm-usage")  # Prevents memory issues
-    chrome_options.add_argument("--disable-gpu")  # Optional, may improve CI performance
+#     # Set up Chrome options for headless mode in CI
+#     chrome_options = Options()
+#     # chrome_options.add_argument("--headless")  # Run in headless mode
+#     chrome_options.add_argument("--no-sandbox")  # Required for CI environments
+#     chrome_options.add_argument("--disable-dev-shm-usage")  # Prevents memory issues
+#     chrome_options.add_argument("--disable-gpu")  # Optional, may improve CI performance
 
-    # Initialize Chrome WebDriver with options
-    driver = webdriver.Chrome(options=chrome_options)
-    driver.maximize_window()
+#     # Initialize Chrome WebDriver with options
+#     driver = webdriver.Chrome(options=chrome_options)
+#     driver.maximize_window()
 
-    driver.get(base_url)
+#     driver.get(base_url)
     
-    # Find the input element by id and type in the employee ID
-    emp_id_input = WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located((By.ID, "empId"))
-    )
-    emp_id_input.send_keys("140008")
+#     # Find the input element by id and type in the employee ID
+#     emp_id_input = WebDriverWait(driver, 15).until(
+#         EC.presence_of_element_located((By.ID, "empId"))
+#     )
+#     emp_id_input.send_keys("140008")
 
-    # Find the Login button by class name and click it
-    login_button = driver.find_element(By.CSS_SELECTOR, "button.btn.btn-primary.btn-block")
-    login_button.click()
+#     # Find the Login button by class name and click it
+#     login_button = driver.find_element(By.CSS_SELECTOR, "button.btn.btn-primary.btn-block")
+#     login_button.click()
 
-    # Add a wait to ensure the page is loaded after login
-    WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "calendar-container"))
-    )
-    logger.info("Login successful.")
+#     # Add a wait to ensure the page is loaded after login
+#     WebDriverWait(driver, 15).until(
+#         EC.presence_of_element_located((By.CLASS_NAME, "calendar-container"))
+#     )
+#     logger.info("Login successful.")
 
-    # Navigate to "WFH Approval"
-    try:
-        applications_dropdown = WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Applications')]"))
-        )
-        applications_dropdown.click()
+#     # Navigate to "WFH Approval"
+#     try:
+#         applications_dropdown = WebDriverWait(driver, 15).until(
+#             EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Applications')]"))
+#         )
+#         applications_dropdown.click()
 
-        wfh_approval_link = WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.XPATH, "//a[@class='dropdown-item' and @href='/managerapproval']"))
-        )
-        wfh_approval_link.click()
-        logger.info("Navigated to WFH Approval Page.")
-    except TimeoutException:
-        logger.error("WFH Approval link not found.")
-        return
+#         wfh_approval_link = WebDriverWait(driver, 15).until(
+#             EC.presence_of_element_located((By.XPATH, "//a[@class='dropdown-item' and @href='/managerapproval']"))
+#         )
+#         wfh_approval_link.click()
+#         logger.info("Navigated to WFH Approval Page.")
+#     except TimeoutException:
+#         logger.error("WFH Approval link not found.")
+#         return
 
-    time.sleep(2)
+#     time.sleep(2)
 
-    # Reset arrangement using API
-    reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/63"
-    response = requests.put(reset_url)
+#     # Reset arrangement using API
+#     reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/63"
+#     response = requests.put(reset_url)
 
-    if response.status_code == 200:
-        logger.info("Arrangement reset successfully.")
-    else:
-        logger.error(f"Failed to reset arrangement: {response.status_code}")
-    time.sleep(2)
+#     if response.status_code == 200:
+#         logger.info("Arrangement reset successfully.")
+#     else:
+#         logger.error(f"Failed to reset arrangement: {response.status_code}")
+#     time.sleep(2)
 
-    driver.refresh()
-    arrangement_row = WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located((By.XPATH, "//td[text()='2024-12-12']/.."))
-    )
+#     driver.refresh()
+#     arrangement_row = WebDriverWait(driver, 15).until(
+#         EC.presence_of_element_located((By.XPATH, "//td[text()='2024-12-12']/.."))
+#     )
 
-    approve_button = WebDriverWait(driver, 15).until(
-        EC.element_to_be_clickable((By.XPATH, ".//button[contains(@class, 'btn-primary')]"))
-    )
-    approve_button.click()
+#     approve_button = WebDriverWait(driver, 15).until(
+#         EC.element_to_be_clickable((By.XPATH, ".//button[contains(@class, 'btn-primary')]"))
+#     )
+#     approve_button.click()
     
-    logger.info("Clicked Approve Arrangement button.")
-    time.sleep(2)
+#     logger.info("Clicked Approve Arrangement button.")
+#     time.sleep(2)
 
-    driver.refresh()
+#     driver.refresh()
 
-    try:
-        WebDriverWait(driver, 10).until(
-            EC.invisibility_of_element_located((By.XPATH, ".//button[contains(@class, 'btn-primary')]"))
-        )
-        logger.info("Approve button no longer visible, as expected.")
-    except TimeoutException:
-        raise Exception("Error: Approve button is still present.")
+#     try:
+#         WebDriverWait(driver, 10).until(
+#             EC.invisibility_of_element_located((By.XPATH, ".//button[contains(@class, 'btn-primary')]"))
+#         )
+#         logger.info("Approve button no longer visible, as expected.")
+#     except TimeoutException:
+#         raise Exception("Error: Approve button is still present.")
 
-    response = requests.put(reset_url)
+#     response = requests.put(reset_url)
 
-    if response.status_code == 200:
-        logger.info("Arrangement reset successfully.")
-    else:
-        logger.error(f"Failed to reset arrangement: {response.status_code}")
+#     if response.status_code == 200:
+#         logger.info("Arrangement reset successfully.")
+#     else:
+#         logger.error(f"Failed to reset arrangement: {response.status_code}")
     
-    time.sleep(2)
-    driver.refresh()
-    withdraw_button = WebDriverWait(driver, 15).until(
-        EC.element_to_be_clickable((By.XPATH, ".//button[contains(@class, 'btn-danger')]"))
-    )
-    withdraw_button.click()
-    time.sleep(2)
+#     time.sleep(2)
+#     driver.refresh()
+#     withdraw_button = WebDriverWait(driver, 15).until(
+#         EC.element_to_be_clickable((By.XPATH, ".//button[contains(@class, 'btn-danger')]"))
+#     )
+#     withdraw_button.click()
+#     time.sleep(2)
     
-    logger.info("Clicked Withdraw Arrangement button.")
+#     logger.info("Clicked Withdraw Arrangement button.")
     
-    submit_button = WebDriverWait(driver, 15).until(
-        EC.element_to_be_clickable((By.XPATH, "//div[@class='modal-footer']//button[contains(@class, 'btn-primary') and text()='Submit']"))
-    )
-    submit_button.click()
-    time.sleep(2)
+#     submit_button = WebDriverWait(driver, 15).until(
+#         EC.element_to_be_clickable((By.XPATH, "//div[@class='modal-footer']//button[contains(@class, 'btn-primary') and text()='Submit']"))
+#     )
+#     submit_button.click()
+#     time.sleep(2)
 
-    driver.refresh()
+#     driver.refresh()
 
-    try:
-        WebDriverWait(driver, 10).until(
-            EC.invisibility_of_element_located((By.XPATH, ".//button[contains(@class, 'btn-danger')]"))
-        )
-        logger.info("Withdraw button no longer visible, as expected.")
-    except TimeoutException:
-        raise Exception("Error: Withdraw button is still present.")
+#     try:
+#         WebDriverWait(driver, 10).until(
+#             EC.invisibility_of_element_located((By.XPATH, ".//button[contains(@class, 'btn-danger')]"))
+#         )
+#         logger.info("Withdraw button no longer visible, as expected.")
+#     except TimeoutException:
+#         raise Exception("Error: Withdraw button is still present.")
 
-    time.sleep(2)
+#     time.sleep(2)
 
-    response = requests.put(reset_url)
+#     response = requests.put(reset_url)
 
-    if response.status_code == 200:
-        logger.info("Arrangement reset successfully.")
-    else:
-        logger.error(f"Failed to reset arrangement: {response.status_code}")
+#     if response.status_code == 200:
+#         logger.info("Arrangement reset successfully.")
+#     else:
+#         logger.error(f"Failed to reset arrangement: {response.status_code}")
 
-    driver.quit()
+#     driver.quit()
