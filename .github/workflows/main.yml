@@ -63,9 +63,16 @@ jobs:
           echo "Preview Deployment URL: $DEPLOYMENT_URL"
           echo "PREVIEW_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
 
-      # Install pytest
-      - name: Install pytest
-        run: pip install pytest
+      # Install Python dependencies including pytest and selenium
+      - name: Install Python dependencies
+        run: |
+          pip install pytest selenium
+
+      # Install Chrome and Chromedriver for Selenium
+      - name: Install Chrome and Chromedriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
 
       # Run integration tests with Selenium
       - name: Run Selenium Tests
