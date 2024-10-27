@@ -63,7 +63,11 @@ jobs:
           echo "Preview Deployment URL: $DEPLOYMENT_URL"
           echo "PREVIEW_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
 
-      # Run tests with the deployment URL
+      # Install pytest
+      - name: Install pytest
+        run: pip install pytest
+
+      # Run integration tests with Selenium
       - name: Run Selenium Tests
         working-directory: ./
         env:
