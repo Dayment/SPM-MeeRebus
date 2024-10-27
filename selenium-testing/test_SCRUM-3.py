@@ -1,49 +1,26 @@
+import pytest
+import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import time
-from datetime import datetime, timedelta
+from selenium.webdriver.chrome.options import Options
 import os
 from dotenv import load_dotenv
-from selenium.webdriver.chrome.options import Options
 
 load_dotenv()
 
-# Set up Chrome options for CI
-chrome_options = Options()
-chrome_options.add_argument("--headless")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-chrome_options.add_argument("--disable-gpu")  # Optional for CI
-
-# Set up Chrome WebDriver with options
-driver = webdriver.Chrome(options=chrome_options)
-
-# Define team structure
-team_structure = {
-    "All": None,
-    "Sales": None,
-    "Consultancy": None,
-    "System Solutioning": ["Developers", "Support Team"],
-    "Engineering": ["Senior Engineers", "Junior Engineers", "Call Centre", "Operation Planning Team"],
-    "HR": ["HR Team", "L&D team", "Admin Team"],
-    "Finance": None,
-    "IT": None
-}
-
-def refresh_page():
+def refresh_page(driver):
     driver.refresh()
     time.sleep(2)
     print("Page refreshed successfully.")
 
-def verify_table_results(team, sub_team=None):
-    WebDriverWait(driver, 15).until(
+def verify_table_results(driver, team, sub_team=None):
+    WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.CSS_SELECTOR, "table.table"))
     )
     
     rows = driver.find_elements(By.CSS_SELECTOR, "table.table tbody tr")
-    
     if len(rows) == 0:
         print(f"No results found for team: {team}, sub-team: {sub_team}")
         return
@@ -65,81 +42,104 @@ def verify_table_results(team, sub_team=None):
     print(f"Table results verified for team: {team}, sub-team: {sub_team}")
 
 def test_navigation():
+    # Set up Chrome options for CI
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+
+    driver = webdriver.Chrome(options=chrome_options)
     driver.maximize_window()
-    base_url = os.getenv("BASE_URL")
-    driver.get(base_url)
 
-    emp_id_input = WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located((By.ID, "empId"))
-    )
-    emp_id_input.send_keys("160075")
+    try:
+        base_url = os.getenv("BASE_URL")
+        driver.get(base_url)
 
-    login_button = driver.find_element(By.CSS_SELECTOR, "button.btn.btn-primary.btn-block")
-    login_button.click()
-
-    WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "calendar-container"))
-    )
-    print("Login successful.")
-
-    company_schedule_link = WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located((By.XPATH, "/html/body/div/div/nav/div/div/ul/li[3]/a"))
-    )
-    company_schedule_link.click()
-    time.sleep(1)
-    print("Company Schedule page loaded.")
-
-    for team, sub_teams in team_structure.items():
-        team_dropdown = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.ID, "dropdownTeam"))
+        emp_id_input = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.ID, "empId"))
         )
-        team_dropdown.click()
-        
-        team_option = WebDriverWait(driver, 15).until(
-            EC.element_to_be_clickable((By.XPATH, f"//a[contains(text(), '{team}')]"))
+        emp_id_input.send_keys("160075")
+
+        login_button = driver.find_element(By.CSS_SELECTOR, "button.btn.btn-primary.btn-block")
+        login_button.click()
+
+        WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "calendar-container"))
         )
-        team_option.click()
-        
-        print(f"Selected team: {team}")
+        print("Login successful.")
 
-        verify_table_results(team)
+        company_schedule_link = WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/nav/div/div/ul/li[3]/a"))
+        )
+        company_schedule_link.click()
+        time.sleep(1)
+        print("Company Schedule page loaded.")
 
-        if sub_teams:
-            subteam_dropdown_id = (
-                "dropdownsyssTeam" if team == "System Solutioning" else
-                "dropdownengTeam" if team == "Engineering" else
-                "dropdownhrTeam" if team == "HR" else None
+        team_structure = {
+            "All": None,
+            "Sales": None,
+            "Consultancy": None,
+            "System Solutioning": ["Developers", "Support Team"],
+            "Engineering": ["Senior Engineers", "Junior Engineers", "Call Centre", "Operation Planning Team"],
+            "HR": ["HR Team", "L&D team", "Admin Team"],
+            "Finance": None,
+            "IT": None
+        }
+
+        for team, sub_teams in team_structure.items():
+            team_dropdown = WebDriverWait(driver, 20).until(
+                EC.element_to_be_clickable((By.ID, "dropdownTeam"))
             )
-            if subteam_dropdown_id:
-                for sub_team in sub_teams:
-                    subteam_dropdown = WebDriverWait(driver, 15).until(
-                        EC.element_to_be_clickable((By.ID, subteam_dropdown_id))
-                    )
-                    subteam_dropdown.click()
+            team_dropdown.click()
+            
+            team_option = WebDriverWait(driver, 20).until(
+                EC.element_to_be_clickable((By.XPATH, f"//a[contains(text(), '{team}')]"))
+            )
+            team_option.click()
+            
+            print(f"Selected team: {team}")
 
-                    sub_team_option = WebDriverWait(driver, 15).until(
-                        EC.element_to_be_clickable((By.XPATH, f"//a[contains(text(), '{sub_team}')]"))
-                    )
-                    sub_team_option.click()
-                    
-                    print(f"  Selected sub-team: {sub_team}")
+            verify_table_results(driver, team)
 
-                    verify_table_results(team, sub_team)
-                    time.sleep(1)
+            if sub_teams:
+                subteam_dropdown_id = (
+                    "dropdownsyssTeam" if team == "System Solutioning" else
+                    "dropdownengTeam" if team == "Engineering" else
+                    "dropdownhrTeam" if team == "HR" else None
+                )
+                if subteam_dropdown_id:
+                    for sub_team in sub_teams:
+                        subteam_dropdown = WebDriverWait(driver, 20).until(
+                            EC.element_to_be_clickable((By.ID, subteam_dropdown_id))
+                        )
+                        subteam_dropdown.click()
 
-    print("Team and sub-team selection tests completed successfully.")
+                        sub_team_option = WebDriverWait(driver, 20).until(
+                            EC.element_to_be_clickable((By.XPATH, f"//a[contains(text(), '{sub_team}')]"))
+                        )
+                        sub_team_option.click()
+                        
+                        print(f"  Selected sub-team: {sub_team}")
 
-    refresh_page()
+                        verify_table_results(driver, team, sub_team)
+                        time.sleep(1)
 
-    search_input = driver.find_element(By.CSS_SELECTOR, "input.filter-input-search")
-    search_input.send_keys("engineering")
-    time.sleep(2)
-    verify_table_results("engineering")
-    print("Search functionality working correctly.")
+        print("Team and sub-team selection tests completed successfully.")
 
-    calendar = driver.find_element(By.CSS_SELECTOR, ".calendar-container")
-    assert calendar.is_displayed(), "Calendar view not displayed"
-    print("Calendar view visible.")
+        refresh_page(driver)
 
-    print("All tests passed successfully!")
-    driver.quit()
+        search_input = driver.find_element(By.CSS_SELECTOR, "input.filter-input-search")
+        search_input.send_keys("engineering")
+        time.sleep(2)
+        verify_table_results(driver, "engineering")
+        print("Search functionality working correctly.")
+
+        calendar = driver.find_element(By.CSS_SELECTOR, ".calendar-container")
+        assert calendar.is_displayed(), "Calendar view not displayed"
+        print("Calendar view visible.")
+
+        print("All tests passed successfully!")
+    
+    finally:
+        driver.quit()
