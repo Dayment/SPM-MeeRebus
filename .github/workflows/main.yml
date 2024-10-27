@@ -44,7 +44,7 @@ jobs:
       # Deploy to Vercel (Preview) and wait for completion
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
-        if: github.ref == 'refs/heads/main'  # Only deploy to preview on non-main branches
+        if: github.ref != 'refs/heads/main'  # Only deploy to preview on non-main branches
         working-directory: ./SPM-MeeRebus
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -52,9 +52,15 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           # Deploy to Vercel and get deployment ID
-          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID)
+          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID) || true
           echo "Deployment Output:"
           echo "$DEPLOYMENT_OUTPUT"
+
+          # Check if deployment output contains an error message
+          if [[ "$DEPLOYMENT_OUTPUT" == *"Error"* ]]; then
+            echo "Error detected in deployment output. Exiting..."
+            exit 1
+          fi
 
           # Extract deployment ID from output
           DEPLOYMENT_ID=$(echo "$DEPLOYMENT_OUTPUT" | grep -oE '[a-z0-9]{24}')
