@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from werkzeug.utils import secure_filename #10/10 cybersecurity
 import time
 from flask_mail import Mail, Message
-from flask_talisman import Talisman
+# from flask_talisman import Talisman
 
 
 
@@ -427,20 +427,28 @@ def create_app(test_config=None):
                 return jsonify({"error": "The selected day is blocked off by HR or management."}), 400
             
             # Get employee's reporting manager
-            employee_data_res = supabase.table('employee').select('reporting_manager', 'email', 'staff_fname', 'staff_lname').eq('staff_id', staff_id).single().execute()
-            if employee_data_res.data:
-                reporting_manager = employee_data_res.data['reporting_manager']
-                employee_email = employee_data_res.data['email']
-                employee_name = f"{employee_data_res.data['staff_fname']} {employee_data_res.data['staff_lname']}"
-            else:
-                return jsonify({"error": "Employee not found."}), 404
 
-            # Get manager email
-            manager_data_res = supabase.table('employee').select('email').eq('staff_id', reporting_manager).single().execute()
-            if manager_data_res.data:
-                manager_email = manager_data_res.data['email']
-            else:
-                manager_email = None
+            if (staff_id != 130002):
+                employee_data_res = supabase.table('employee').select('reporting_manager', 'email', 'staff_fname', 'staff_lname').eq('staff_id', staff_id).single().execute()
+                if employee_data_res.data:
+                    reporting_manager = employee_data_res.data['reporting_manager']
+                    employee_email = employee_data_res.data['email']
+                    employee_name = f"{employee_data_res.data['staff_fname']} {employee_data_res.data['staff_lname']}"
+                else:
+                    return jsonify({"error": "Employee not found."}), 404
+
+                # Get manager email
+                manager_data_res = supabase.table('employee').select('email').eq('staff_id', reporting_manager).single().execute()
+                if manager_data_res.data:
+                    manager_email = manager_data_res.data['email']
+                else:
+                    manager_email = None
+
+            status = 0
+
+            if (staff_id == 130002):
+                status = 1
+                reporting_manager = 130002
 
             # Recurring request logic
             if requestType == "Recurring":
@@ -459,7 +467,7 @@ def create_app(test_config=None):
                         "reporting_manager": reporting_manager,  
                         "time": time,
                         "date": date.strftime('%Y-%m-%d %H:%M:%S'),  
-                        "status": 0,  # Pending
+                        "status": status,  # Pending
                         "reason_staff": reason,
                         "document_url": url
                     }).execute()
@@ -469,16 +477,19 @@ def create_app(test_config=None):
                     "reporting_manager": reporting_manager,  
                     "time": time,
                     "date": wfh_date_obj.strftime('%Y-%m-%d %H:%M:%S'),  
-                    "status": 0,  # Pending
+                    "status": status,  # Pending
                     "reason_staff": reason,
                     "document_url": url
                 }).execute()
 
             # Send notification emails after successful submission
-            if manager_email and employee_email:
-                send_wfh_notification(employee_email, manager_email, employee_name)
+            if (staff_id != 130002):
+                if manager_email and employee_email:
+                    send_wfh_notification(employee_email, manager_email, employee_name)
 
-            return jsonify({"message": "WFH request submitted successfully and is now pending approval."}), 201
+                return jsonify({"message": "WFH request submitted successfully and is now pending approval."}), 201
+            else:
+                return jsonify({"message": "WFH approved."}), 201
 
         except Exception as e:
             print(f"Error in create_WFH_request: {str(e)}")  # Add this line
