@@ -44,7 +44,7 @@ jobs:
       # Deploy to Vercel (Preview) and capture DEPLOYMENT_URL
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
-        if: github.ref != 'refs/heads/main'  # Only deploy to preview on non-main branches
+        if: github.ref == 'refs/heads/main'  # Only deploy to preview on non-main branches
         working-directory: ./SPM-MeeRebus
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -55,8 +55,14 @@ jobs:
           echo "Deployment Output:"
           echo "$DEPLOYMENT_OUTPUT"
 
+          sleep 10  # Wait for deployment to finish (adjust as needed)
+
+          # Extract the deployment URL from the 'Preview:' line in the output
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep '^https' | awk '{ print $1 }')
+          echo "Preview Deployment URL: $DEPLOYMENT_URL"
+          echo "PREVIEW_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+
       # Run your tests (e.g., Selenium or any other test suites) here
-      # Assuming your tests are set up after deploying to Preview
 
       # Set up Python 3.8 for testing (keep your existing setup as is)
       - name: Set up Python 3.8
@@ -79,10 +85,11 @@ jobs:
 
       # Run integration tests (e.g., using Selenium) after deployment to preview
       - name: Run Selenium Tests
-        working-directory: ./selenium-testing
+        working-directory: ./
+        env:
+          BASE_URL: ${{ env.PREVIEW_URL }}  # Use the preview URL for tests
         run: |
-          # Run Selenium tests
-          python -m unittest discover
+          pytest selenium-testing/
 
       # Deploy to Vercel (Production) after successful tests
       - name: Deploy to Vercel (Production)
