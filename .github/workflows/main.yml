@@ -27,10 +27,10 @@ jobs:
         with:
           node-version: '16'
 
-      # Install frontend dependencies using npm ci for a clean install
+      # Install frontend dependencies
       - name: Install frontend dependencies
         working-directory: ./SPM-MeeRebus
-        run: npm ci
+        run: npm install
 
       # Build the Vue app
       - name: Build the Vue app
@@ -72,9 +72,7 @@ jobs:
       - name: Install Chrome and Chromedriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4 google-chrome-stable
-          wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE)/chromedriver_linux64.zip
-          unzip /tmp/chromedriver.zip -d /usr/local/bin/
+          sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
 
       # Run integration tests with Selenium
       - name: Run Selenium Tests
@@ -84,23 +82,3 @@ jobs:
         run: |
           echo "Testing with BASE_URL: $BASE_URL"
           pytest selenium-testing/
-
-  deploy-prod:
-    needs: build-test-deploy  # Run this job only if tests pass
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'  # Deploy to production only from main
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
-      # Deploy to Vercel (Production)
-      - name: Deploy to Vercel (Production)
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: vercel --prod --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID
