@@ -52,12 +52,16 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
           # Deploy to Vercel and get deployment ID
-          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID --confirm)
+          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID)
           echo "Deployment Output:"
           echo "$DEPLOYMENT_OUTPUT"
 
           # Extract deployment ID from output
           DEPLOYMENT_ID=$(echo "$DEPLOYMENT_OUTPUT" | grep -oE '[a-z0-9]{24}')
+          if [ -z "$DEPLOYMENT_ID" ]; then
+            echo "Failed to extract DEPLOYMENT_ID. Exiting..."
+            exit 1
+          fi
           echo "Deployment ID: $DEPLOYMENT_ID"
 
           # Poll Vercel API until deployment is ready
@@ -69,11 +73,20 @@ jobs:
               echo "Deployment URL: https://$DEPLOYMENT_URL"
               echo "PREVIEW_URL=https://$DEPLOYMENT_URL" >> $GITHUB_ENV
               break
+            elif [ "$STATUS" = "ERROR" ]; then
+              echo "Deployment failed with status ERROR."
+              exit 1
             else
               echo "Deployment not ready, waiting..."
               sleep 5
             fi
           done
+
+          # Verify if PREVIEW_URL was set
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "Deployment did not complete in time. Exiting..."
+            exit 1
+          fi
 
       # Run your tests (e.g., Selenium or any other test suites) here
 
