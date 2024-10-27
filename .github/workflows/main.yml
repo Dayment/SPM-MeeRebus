@@ -82,3 +82,14 @@ jobs:
         run: |
           echo "Testing with BASE_URL: $BASE_URL"
           pytest selenium-testing/
+      
+      # Deploy to Production after tests pass
+      - name: Deploy to Production
+        if: ${{ success() && github.ref == 'refs/heads/main' }} # Only deploy if tests pass and on the main branch
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          echo "Deploying to Production..."
+          vercel --prod --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --yes
