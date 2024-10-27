@@ -41,32 +41,54 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      # Deploy to Vercel (Preview) and capture DEPLOYMENT_URL
+      # Deploy to Vercel (Preview) and wait for completion
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
-        if: github.ref == 'refs/heads/main'  # Deploy preview on main
+        if: github.ref == 'refs/heads/main'  # Only deploy to preview on non-main branches
         working-directory: ./SPM-MeeRebus
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID) || true
-          echo "Deployment Output: $DEPLOYMENT_OUTPUT"
-          
-          # Extract deployment URL from output
-          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep -Eo 'https://[^ ]+\.vercel\.app')
-          if [ -z "$DEPLOYMENT_URL" ]; then
-            echo "Error: Deployment URL not found, exiting..."
-            exit 1
-          fi
-          echo "Preview Deployment URL: $DEPLOYMENT_URL"
-          echo "PREVIEW_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+          # Deploy to Vercel and get deployment ID
+          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID --confirm)
+          echo "Deployment Output:"
+          echo "$DEPLOYMENT_OUTPUT"
 
-      # Install Python dependencies including pytest, selenium, and python-dotenv
+          # Extract deployment ID from output
+          DEPLOYMENT_ID=$(echo "$DEPLOYMENT_OUTPUT" | grep -oE '[a-z0-9]{24}')
+          echo "Deployment ID: $DEPLOYMENT_ID"
+
+          # Poll Vercel API until deployment is ready
+          for i in {1..10}; do
+            STATUS=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID" | jq -r '.readyState')
+            echo "Deployment Status: $STATUS"
+            if [ "$STATUS" = "READY" ]; then
+              DEPLOYMENT_URL=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID" | jq -r '.url')
+              echo "Deployment URL: https://$DEPLOYMENT_URL"
+              echo "PREVIEW_URL=https://$DEPLOYMENT_URL" >> $GITHUB_ENV
+              break
+            else
+              echo "Deployment not ready, waiting..."
+              sleep 5
+            fi
+          done
+
+      # Run your tests (e.g., Selenium or any other test suites) here
+
+      # Set up Python 3.8 for testing (keep your existing setup as is)
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      # Install Python dependencies
       - name: Install Python dependencies
+        working-directory: ./selenium-testing
         run: |
-          pip install pytest selenium python-dotenv
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       # Install Chrome and Chromedriver for Selenium
       - name: Install Chrome and Chromedriver
@@ -74,22 +96,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
 
-      # Run integration tests with Selenium
+      # Run integration tests (e.g., using Selenium) after deployment to preview
       - name: Run Selenium Tests
         working-directory: ./
         env:
-          BASE_URL: ${{ env.PREVIEW_URL }}
+          BASE_URL: ${{ env.PREVIEW_URL }}  # Use the preview URL for tests
         run: |
-          echo "Testing with BASE_URL: $BASE_URL"
           pytest selenium-testing/
-      
-      # Deploy to Production after tests pass
-      - name: Deploy to Production
-        if: ${{ success() && github.ref == 'refs/heads/main' }} # Only deploy if tests pass and on the main branch
+
+      # Deploy to Vercel (Production) after successful tests
+      - name: Deploy to Vercel (Production)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test-ci' || github.event_name == 'workflow_dispatch'
+        working-directory: ./SPM-MeeRebus
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          echo "Deploying to Production..."
-          vercel --prod --token $VERCEL_TOKEN --scope $VERCEL_ORG_ID --yes
+          vercel --prod --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID
