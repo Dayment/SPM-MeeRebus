@@ -65,7 +65,9 @@ def test_navigation(driver):
         print("BASE_URL not set.")
         return
 
+    # Load the base URL and confirm page load by waiting for the body tag
     driver.get(base_url)
+    WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
     # Login sequence
     emp_id_input = WebDriverWait(driver, 20).until(
@@ -74,6 +76,7 @@ def test_navigation(driver):
     emp_id_input.send_keys("160075")
     login_button = driver.find_element(By.CSS_SELECTOR, "button.btn.btn-primary.btn-block")
     login_button.click()
+
     WebDriverWait(driver, 20).until(
         EC.presence_of_element_located((By.CLASS_NAME, "calendar-container"))
     )
