@@ -55,6 +55,11 @@ jobs:
           echo "Deployment Output:"
           echo "$DEPLOYMENT_OUTPUT"
 
+          # Extract the deployment URL from the 'Preview:' line in the output
+          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep '^https' | awk '{ print $1 }')
+          echo "Preview Deployment URL: $DEPLOYMENT_URL"
+          echo "PREVIEW_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+
       # Run your tests (e.g., Selenium or any other test suites) here
       # Assuming your tests are set up after deploying to Preview
 
@@ -78,10 +83,12 @@ jobs:
           sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
 
       # Run integration tests (e.g., using Selenium) after deployment to preview
+            # Run integration tests (e.g., using Selenium) after deployment to preview
       - name: Run Selenium Tests
         working-directory: ./selenium-testing
+        env:
+          BASE_URL: ${{ env.PREVIEW_URL }}  # Use the preview URL for tests
         run: |
-          # Run Selenium tests
           python -m unittest discover
 
       # Deploy to Vercel (Production) after successful tests
