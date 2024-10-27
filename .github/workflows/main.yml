@@ -44,7 +44,7 @@ jobs:
       # Deploy to Vercel (Preview) and capture DEPLOYMENT_URL
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
-        if: github.ref != 'refs/heads/main'  # Only deploy to preview on non-main branches
+        if: github.ref == 'refs/heads/main'  # Only deploy to preview on non-main branches
         working-directory: ./SPM-MeeRebus
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
