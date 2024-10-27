@@ -43,8 +43,20 @@ def verify_table_results(driver, team, sub_team=None):
     except Exception as e:
         print(f"Error verifying table results: {e}")
 
-@pytest.mark.usefixtures("driver_init")
-def test_navigation(driver):
+@pytest.fixture(scope="function")
+def driver_init():
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    driver = webdriver.Chrome(options=chrome_options)
+    driver.maximize_window()
+    yield driver
+    driver.quit()
+
+def test_navigation(driver_init):
+    driver = driver_init  # Use the driver from the fixture
     try:
         base_url = os.getenv("BASE_URL")
         if not base_url:
@@ -140,16 +152,3 @@ def test_navigation(driver):
     
     finally:
         driver.quit()
-
-@pytest.fixture(scope="function")
-def driver_init(request):
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    driver = webdriver.Chrome(options=chrome_options)
-    driver.maximize_window()
-    request.cls.driver = driver
-    yield driver
-    driver.quit()
