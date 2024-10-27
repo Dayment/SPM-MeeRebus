@@ -55,6 +55,8 @@ jobs:
           echo "Deployment Output:"
           echo "$DEPLOYMENT_OUTPUT"
 
+          sleep 10  # Wait for deployment to finish (adjust as needed)
+
           # Extract the deployment URL from the 'Preview:' line in the output
           DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep '^https' | awk '{ print $1 }')
           echo "Preview Deployment URL: $DEPLOYMENT_URL"
@@ -83,11 +85,11 @@ jobs:
 
       # Run integration tests (e.g., using Selenium) after deployment to preview
       - name: Run Selenium Tests
-        working-directory: ./selenium-testing
+        working-directory: ./
         env:
           BASE_URL: ${{ env.PREVIEW_URL }}  # Use the preview URL for tests
         run: |
-          python -m unittest discover
+          pytest selenium-testing/
 
       # Deploy to Vercel (Production) after successful tests
       - name: Deploy to Vercel (Production)
