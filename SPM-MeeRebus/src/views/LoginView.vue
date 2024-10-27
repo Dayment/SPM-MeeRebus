@@ -121,14 +121,14 @@ export default {
           (response.data.role == 1 && response.data.position == 'Director') ||
           response.data.position == 'MD'
         ) {
-          eventBus.isHR = true;
-          localStorage.setItem('isHR', true);
-          eventBus.isDir = true;
-          localStorage.setItem('isDir', true);
-          eventBus.isManager = true;
-          localStorage.setItem('isManager', true);
-
-          await this.getOwnUnderlingData(response.data.staff_id);
+            eventBus.isHR = true;
+            localStorage.setItem('isHR', true);
+            eventBus.isDir = true;
+            localStorage.setItem('isDir', true);
+            eventBus.isManager = true;
+            localStorage.setItem('isManager', true);
+            await this.getOwnArrangementData(response.data.staff_id);
+            await this.getOwnUnderlingData(response.data.staff_id);
         } else if (response.data.role == 3) {
           eventBus.isManager = true;
           localStorage.setItem('isManager', true);
