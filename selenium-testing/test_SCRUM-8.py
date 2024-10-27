@@ -2,7 +2,6 @@ import pytest
 import time
 import os
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -29,7 +28,9 @@ def test_navigation():
     browser.get(base_url)
 
     # Find the input element by id and type in the employee ID
-    emp_id_input = browser.find_element(By.ID, "empId")
+    emp_id_input = WebDriverWait(browser, 15).until(
+        EC.presence_of_element_located((By.ID, "empId"))
+    )
     emp_id_input.send_keys("150065")
 
     # Find the Login button by class name and click it
@@ -37,7 +38,9 @@ def test_navigation():
     login_button.click()
 
     # Add a wait to ensure the page is loaded after login
-    WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "calendar-container")))
+    WebDriverWait(browser, 15).until(
+        EC.presence_of_element_located((By.CLASS_NAME, "calendar-container"))
+    )
     print("Login successful.")
 
     # Wait for a bit
@@ -45,7 +48,7 @@ def test_navigation():
 
     # Try to navigate to the previous month
     try:
-        prev_button = WebDriverWait(browser, 10).until(
+        prev_button = WebDriverWait(browser, 15).until(
             EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Previous')]"))
         )
         month_dropdown = browser.find_element(By.ID, "dropdownMonth")
@@ -68,7 +71,7 @@ def test_navigation():
 
         # Check for the "Next" button after successfully navigating to the previous month
         try:
-            next_button = WebDriverWait(browser, 10).until(
+            next_button = WebDriverWait(browser, 15).until(
                 EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Next')]"))
             )
             # Click "Next" and check if the month changes back to October

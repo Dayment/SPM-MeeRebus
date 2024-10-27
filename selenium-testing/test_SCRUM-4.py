@@ -20,8 +20,6 @@ def test_navigation():
 
     # Initialize Chrome WebDriver with options
     browser = webdriver.Chrome(options=chrome_options)
-
-    # Maximize the browser window
     browser.maximize_window()
 
     base_url = os.getenv("BASE_URL")
@@ -29,8 +27,8 @@ def test_navigation():
     # 1) Go to the URL from the environment variable
     browser.get(base_url)
     
-    # 2) Find the employee ID input field and enter the ID "150065"
-    emp_id_input = WebDriverWait(browser, 10).until(
+    # 2) Wait for the employee ID input field and enter the ID "150065"
+    emp_id_input = WebDriverWait(browser, 15).until(
         EC.presence_of_element_located((By.ID, "empId"))
     )
     emp_id_input.send_keys("150065")
@@ -40,13 +38,13 @@ def test_navigation():
     login_button.click()
 
     # 3) Wait until the calendar is loaded after login to confirm successful login
-    WebDriverWait(browser, 10).until(
+    WebDriverWait(browser, 15).until(
         EC.presence_of_element_located((By.CLASS_NAME, "calendar-container"))
     )
     print("Login successful.")
     
     # 4) Wait for the "Application History" link to be clickable, and then click it
-    application_history_link = WebDriverWait(browser, 10).until(
+    application_history_link = WebDriverWait(browser, 15).until(
         EC.element_to_be_clickable((By.CSS_SELECTOR, "a.nav-link[href='/history']"))
     )
     application_history_link.click()
@@ -54,7 +52,7 @@ def test_navigation():
     # 5) Pause for 2 seconds to ensure the history page has loaded
     time.sleep(2)
 
-    # 6) Find the row with <td>11/1/2024, 9:00:00 AM</td> and get the Cancel button
+    # 6) Reset arrangement with API call
     reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/10"    
     response = requests.put(reset_url)
 
@@ -63,26 +61,25 @@ def test_navigation():
     else:
         print(f"Failed to reset arrangement: {response.status_code}")
 
-    arrangement_row = WebDriverWait(browser, 10).until(
+    # 7) Find the arrangement row and click Cancel button
+    arrangement_row = WebDriverWait(browser, 15).until(
         EC.presence_of_element_located((By.XPATH, "//td[text()='2024-11-01']/.."))
     )
-
     cancel_button = arrangement_row.find_element(By.XPATH, ".//button[contains(@class, 'btn-danger')]")
     cancel_button.click()
-    
     print("Clicked Cancel Arrangement button.")
 
-    # 7) Verify that the Cancel button is no longer present
-    time.sleep(2)  # Wait for changes to take effect
+    # 8) Verify that the Cancel button is no longer present
+    time.sleep(2)
     try:
-        WebDriverWait(browser, 5).until(
-            EC.invisibility_of_element((By.XPATH, ".//button[contains(@class, 'btn-danger')]"))
+        WebDriverWait(browser, 10).until(
+            EC.invisibility_of_element_located((By.XPATH, ".//button[contains(@class, 'btn-danger')]"))
         )
         print("Cancel button no longer visible, as expected.")
     except:
         print("Error: Cancel button is still present.")
 
-    # 8) Reset the arrangement with arrangement_id=10 via API call
+    # 9) Reset the arrangement with arrangement_id=10 via API call
     reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/10"    
     response = requests.put(reset_url)
 
@@ -91,7 +88,7 @@ def test_navigation():
     else:
         print(f"Failed to reset arrangement: {response.status_code}")
 
-    # 9) Pause for observation
+    # 10) Pause for observation
     time.sleep(2)
 
     # Close the browser after test

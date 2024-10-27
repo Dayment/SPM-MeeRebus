@@ -35,7 +35,9 @@ def test_navigation():
     driver.get(base_url)
     
     # Find the input element by id and type in the employee ID
-    emp_id_input = driver.find_element(By.ID, "empId")
+    emp_id_input = WebDriverWait(driver, 15).until(
+        EC.presence_of_element_located((By.ID, "empId"))
+    )
     emp_id_input.send_keys("140008")
 
     # Find the Login button by class name and click it
@@ -43,19 +45,19 @@ def test_navigation():
     login_button.click()
 
     # Add a wait to ensure the page is loaded after login
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "calendar-container")))
+    WebDriverWait(driver, 15).until(
+        EC.presence_of_element_located((By.CLASS_NAME, "calendar-container"))
+    )
     logger.info("Login successful.")
 
     # Navigate to "WFH Approval"
     try:
-        # Click the "Applications" dropdown to reveal the "WFH Approval" link
-        applications_dropdown = WebDriverWait(driver, 10).until(
+        applications_dropdown = WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Applications')]"))
         )
         applications_dropdown.click()
 
-        # Now locate and click the "WFH Approval" link
-        wfh_approval_link = WebDriverWait(driver, 10).until(
+        wfh_approval_link = WebDriverWait(driver, 15).until(
             EC.presence_of_element_located((By.XPATH, "//a[@class='dropdown-item' and @href='/managerapproval']"))
         )
         wfh_approval_link.click()
@@ -64,9 +66,9 @@ def test_navigation():
         logger.error("WFH Approval link not found.")
         return
 
-    # Wait for a bit
     time.sleep(2)
 
+    # Reset arrangement using API
     reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/63"
     response = requests.put(reset_url)
 
@@ -77,11 +79,11 @@ def test_navigation():
     time.sleep(2)
 
     driver.refresh()
-    arrangement_row = WebDriverWait(driver, 10).until(
+    arrangement_row = WebDriverWait(driver, 15).until(
         EC.presence_of_element_located((By.XPATH, "//td[text()='2024-12-12']/.."))
     )
 
-    approve_button = WebDriverWait(driver, 10).until(
+    approve_button = WebDriverWait(driver, 15).until(
         EC.element_to_be_clickable((By.XPATH, ".//button[contains(@class, 'btn-primary')]"))
     )
     approve_button.click()
@@ -89,18 +91,16 @@ def test_navigation():
     logger.info("Clicked Approve Arrangement button.")
     time.sleep(2)
 
-    # Refresh the page
     driver.refresh()
 
     try:
-        WebDriverWait(driver, 5).until(
-            EC.invisibility_of_element((By.XPATH, ".//button[contains(@class, 'btn-primary')]"))
+        WebDriverWait(driver, 10).until(
+            EC.invisibility_of_element_located((By.XPATH, ".//button[contains(@class, 'btn-primary')]"))
         )
         logger.info("Approve button no longer visible, as expected.")
     except TimeoutException:
         raise Exception("Error: Approve button is still present.")
 
-    reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/63"
     response = requests.put(reset_url)
 
     if response.status_code == 200:
@@ -110,7 +110,7 @@ def test_navigation():
     
     time.sleep(2)
     driver.refresh()
-    withdraw_button = WebDriverWait(driver, 10).until(
+    withdraw_button = WebDriverWait(driver, 15).until(
         EC.element_to_be_clickable((By.XPATH, ".//button[contains(@class, 'btn-danger')]"))
     )
     withdraw_button.click()
@@ -118,18 +118,17 @@ def test_navigation():
     
     logger.info("Clicked Withdraw Arrangement button.")
     
-    submit_button = WebDriverWait(driver, 10).until(
+    submit_button = WebDriverWait(driver, 15).until(
         EC.element_to_be_clickable((By.XPATH, "//div[@class='modal-footer']//button[contains(@class, 'btn-primary') and text()='Submit']"))
     )
     submit_button.click()
     time.sleep(2)
 
-    # Refresh the page
     driver.refresh()
 
     try:
-        WebDriverWait(driver, 5).until(
-            EC.invisibility_of_element((By.XPATH, ".//button[contains(@class, 'btn-danger')]"))
+        WebDriverWait(driver, 10).until(
+            EC.invisibility_of_element_located((By.XPATH, ".//button[contains(@class, 'btn-danger')]"))
         )
         logger.info("Withdraw button no longer visible, as expected.")
     except TimeoutException:
@@ -137,7 +136,6 @@ def test_navigation():
 
     time.sleep(2)
 
-    reset_url = f"{base_url}/arrangement/test_scrum_8_reset_arrangement_status/63"
     response = requests.put(reset_url)
 
     if response.status_code == 200:

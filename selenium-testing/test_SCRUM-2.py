@@ -14,6 +14,7 @@ load_dotenv()
 
 def test_navigation():
     base_url = os.getenv("BASE_URL")
+    print(f"Testing with BASE_URL: {base_url}")
 
     # Set up Chrome options for headless mode in CI
     chrome_options = Options()
@@ -30,8 +31,15 @@ def test_navigation():
         # 1) Go to the URL from the environment variable
         driver.get(base_url)
         
-        # Find the input element by id and type in the employee ID
-        emp_id_input = driver.find_element(By.ID, "empId")
+        # Extra wait for page load confirmation
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.TAG_NAME, "body"))
+        )
+
+        # Wait for the employee ID input field and enter employee ID
+        emp_id_input = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.ID, "empId"))
+        )
         emp_id_input.send_keys("130002")
 
         # Find the Login button by class name and click it
@@ -39,12 +47,14 @@ def test_navigation():
         login_button.click()
 
         # Add a wait to ensure the page is loaded after login
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "calendar-container")))
+        WebDriverWait(driver, 15).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "calendar-container"))
+        )
         print("Login successful.")
 
         # Navigate to "Company Schedule"
         try:
-            company_schedule_link = WebDriverWait(driver, 10).until(
+            company_schedule_link = WebDriverWait(driver, 15).until(
                 EC.presence_of_element_located((By.XPATH, "//a[@class='nav-link' and @href='/company']"))
             )
             company_schedule_link.click()
@@ -55,7 +65,7 @@ def test_navigation():
 
         # Check for "WFH Arrangements" within the table container
         try:
-            wfh_arrangements_header = WebDriverWait(driver, 10).until(
+            wfh_arrangements_header = WebDriverWait(driver, 15).until(
                 EC.presence_of_element_located((By.XPATH, "//div[@class='table-container']//h2[contains(text(), 'WFH Arrangements')]"))
             )
             print("WFH Arrangements found.")
@@ -68,7 +78,7 @@ def test_navigation():
 
         # Try to navigate to the previous month
         try:
-            prev_button = WebDriverWait(driver, 10).until(
+            prev_button = WebDriverWait(driver, 15).until(
                 EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Previous')]"))
             )
             month_dropdown = driver.find_element(By.ID, "dropdownMonth")
@@ -91,7 +101,7 @@ def test_navigation():
 
             # Check for the "Next" button after successfully navigating to the previous month
             try:
-                next_button = WebDriverWait(driver, 10).until(
+                next_button = WebDriverWait(driver, 15).until(
                     EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Next')]"))
                 )
                 # Click "Next" and check if the month changes back to October
