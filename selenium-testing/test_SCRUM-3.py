@@ -6,11 +6,18 @@ import time
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
+from selenium.webdriver.chrome.options import Options
 
 load_dotenv()
 
-# Set up Chrome WebDriver
-driver = webdriver.Chrome()
+# Set up Chrome options for CI
+chrome_options = Options()
+chrome_options.add_argument("--headless")
+chrome_options.add_argument("--no-sandbox")
+chrome_options.add_argument("--disable-dev-shm-usage")
+
+# Set up Chrome WebDriver with options
+driver = webdriver.Chrome(options=chrome_options)
 
 # Define team structure
 team_structure = {
@@ -59,14 +66,11 @@ def verify_table_results(team, sub_team=None):
     
     print(f"Table results verified for team: {team}, sub-team: {sub_team}")
 
-
 def test_navigation():
     driver.maximize_window()
-    # Visit the local page
+    # Visit the base URL from environment variable
     base_url = os.getenv("BASE_URL")
-
-    # 1) Go to the URL from the environment variable
-    driver.get(base_url)  # Update this URL to your actual local setup
+    driver.get(base_url)
 
     # Wait for the employee ID input field and enter employee ID
     emp_id_input = WebDriverWait(driver, 10).until(
@@ -92,7 +96,6 @@ def test_navigation():
 
     time.sleep(1)
     print("Company Schedule page loaded.")
-
 
     # Test team and sub-team selection
     for team, sub_teams in team_structure.items():
@@ -138,12 +141,8 @@ def test_navigation():
 
                 # Verify table results for sub-team
                 verify_table_results(team, sub_team)
-
-                # Here you can add additional checks or actions for each sub-team if needed
                 time.sleep(1)
     
-    
-
     print("Team and sub-team selection tests completed successfully.")
 
     refresh_page()
@@ -153,37 +152,14 @@ def test_navigation():
     search_input.send_keys("engineering")
     time.sleep(2)  # Wait for the table to update
 
-    #Verify filtered results
+    # Verify filtered results
     verify_table_results("engineering")
-
     print("Search functionality working correctly.")
 
-
-    # # Test date filtering
-    # start_date_input = driver.find_element(By.ID, "start-date")
-    # end_date_input = driver.find_element(By.ID, "end-date")
-
-    # today = datetime.now()
-    # one_week_later = today + timedelta(days=7)
-
-    # start_date_input.send_keys(today.strftime("%Y-%m-%d"))
-    # end_date_input.send_keys(one_week_later.strftime("%Y-%m-%d"))
-
-    # print("Date range set successfully.")
-
-
-    # Test calendar view (assuming it's implemented)
+    # Test calendar view
     calendar = driver.find_element(By.CSS_SELECTOR, ".calendar-container")  # Adjust selector as needed
     assert calendar.is_displayed(), "Calendar view not displayed"
-
     print("Calendar view visible.")
 
     print("All tests passed successfully!")
-    
     driver.quit()
-    # print(f"Test failed: {str(e)}")
-    # Optionally, take a screenshot or dump the page source for debugging
-    # driver.save_screenshot("error_screenshot.png")
-    # with open("error_page_source.html", "w", encoding="utf-8") as f:
-    #    f.write(driver.page_source)
-
