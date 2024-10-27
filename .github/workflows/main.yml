@@ -61,7 +61,6 @@ jobs:
           echo "PREVIEW_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
 
       # Run your tests (e.g., Selenium or any other test suites) here
-      # Assuming your tests are set up after deploying to Preview
 
       # Set up Python 3.8 for testing (keep your existing setup as is)
       - name: Set up Python 3.8
@@ -83,7 +82,6 @@ jobs:
           sudo apt-get install -y wget unzip xvfb libxi6 libgconf-2-4
 
       # Run integration tests (e.g., using Selenium) after deployment to preview
-            # Run integration tests (e.g., using Selenium) after deployment to preview
       - name: Run Selenium Tests
         working-directory: ./selenium-testing
         env:
