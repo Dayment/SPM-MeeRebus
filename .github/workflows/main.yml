@@ -41,7 +41,7 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel
 
-      # Deploy to Vercel (Preview) and capture DEPLOYMENT_URL
+      # Deploy to Vercel (Preview) and wait for completion
       - name: Deploy to Vercel (Preview)
         id: vercel_deploy
         if: github.ref == 'refs/heads/main'  # Only deploy to preview on non-main branches
@@ -51,16 +51,42 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID 2>&1)
+          # Deploy to Vercel and get deployment ID
+          DEPLOYMENT_OUTPUT=$(vercel --token $VERCEL_TOKEN --yes --scope $VERCEL_ORG_ID)
           echo "Deployment Output:"
           echo "$DEPLOYMENT_OUTPUT"
 
-          sleep 10  # Wait for deployment to finish (adjust as needed)
+          # Extract deployment ID from output
+          DEPLOYMENT_ID=$(echo "$DEPLOYMENT_OUTPUT" | grep -oE '[a-z0-9]{24}')
+          if [ -z "$DEPLOYMENT_ID" ]; then
+            echo "Failed to extract DEPLOYMENT_ID. Exiting..."
+            exit 1
+          fi
+          echo "Deployment ID: $DEPLOYMENT_ID"
 
-          # Extract the deployment URL from the 'Preview:' line in the output
-          DEPLOYMENT_URL=$(echo "$DEPLOYMENT_OUTPUT" | grep '^https' | awk '{ print $1 }')
-          echo "Preview Deployment URL: $DEPLOYMENT_URL"
-          echo "PREVIEW_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+          # Poll Vercel API until deployment is ready
+          for i in {1..10}; do
+            STATUS=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID" | jq -r '.readyState')
+            echo "Deployment Status: $STATUS"
+            if [ "$STATUS" = "READY" ]; then
+              DEPLOYMENT_URL=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$DEPLOYMENT_ID" | jq -r '.url')
+              echo "Deployment URL: https://$DEPLOYMENT_URL"
+              echo "PREVIEW_URL=https://$DEPLOYMENT_URL" >> $GITHUB_ENV
+              break
+            elif [ "$STATUS" = "ERROR" ]; then
+              echo "Deployment failed with status ERROR."
+              exit 1
+            else
+              echo "Deployment not ready, waiting..."
+              sleep 5
+            fi
+          done
+
+          # Verify if PREVIEW_URL was set
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "Deployment did not complete in time. Exiting..."
+            exit 1
+          fi
 
       # Run your tests (e.g., Selenium or any other test suites) here
 
