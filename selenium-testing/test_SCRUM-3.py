@@ -142,7 +142,7 @@ def test_navigation(driver):
         driver.quit()
 
 @pytest.fixture(scope="function")
-def driver_init():
+def driver_init(request):
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
@@ -150,5 +150,6 @@ def driver_init():
     chrome_options.add_argument("--disable-gpu")
     driver = webdriver.Chrome(options=chrome_options)
     driver.maximize_window()
+    request.cls.driver = driver
     yield driver
     driver.quit()
