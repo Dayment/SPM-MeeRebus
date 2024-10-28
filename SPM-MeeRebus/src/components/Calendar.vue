@@ -106,13 +106,17 @@
 
             <div class="day-content">{{ day }}</div>
 
-            <div v-if="getWFHForDay(day)" class="wfh-task">
+            <div 
+              v-if="getWFHForDay(day)" 
+              class="wfh-task"
+              :style="{ backgroundColor: getStatusStyle(getWFHForDay(day).status) }"
+            >
               <span class="task-title">
                 {{ day }}
                 ({{ this.formatWFHTime(getWFHForDay(day).time) }})
                 {{ getWFHForDay(day)?.employee?.staff_fname || 'You' }} :
-                {{ getWFHForDay(day).reason_staff || 'No Reason' }}</span
-              >
+                {{ getWFHForDay(day).reason_staff || 'No Reason' }}
+              </span>
             </div>
           </div>
         </div>
@@ -334,6 +338,19 @@ export default {
       );
     },
 
+    getStatusStyle(status) {
+    switch (status) {
+      case 0:
+        return '#FFA500'; // Orange for pending
+      case 1:
+        return '#4CAF50'; // Green for approved
+      case 2:
+        return '#F44336'; // Red for rejected
+      case 3:
+        return '#A9A9A9'; // Default blue
+    }
+  },
+
     formatWFHTime(time) {
       switch (time) {
         case 1:
@@ -424,12 +441,12 @@ export default {
 
 /* Styling for WFH task */
 .wfh-task {
-  background-color: #4a90e2;
+  /* background-color: #4a90e2; */
   color: white;
   padding: 5px;
   border-radius: 4px;
   margin-top: 5px;
-  font-size: 12px;
+  font-size: 12px; 
   font-weight: bold;
   display: flex;
   justify-content: space-between;
