@@ -1,5 +1,6 @@
 import pytest
 import time
+import datetime
 import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -57,35 +58,28 @@ def test_navigation():
         return
 
     # Check if the current month is October
-    current_month = month_dropdown.text
-    if current_month != "October":
-        print("Initial month is not October.")
-        return
+    current_month = datetime.datetime.strptime(month_dropdown.text, "%B")
+
 
     # Click the "Previous" button and check if the month changes to September
     prev_button.click()
     time.sleep(2)  # Wait for UI update
-    updated_month = month_dropdown.text
-    if updated_month == "September":
-        print("Previous month navigation successful.")
+    updated_month = datetime.datetime.strptime(month_dropdown.text, "%B")
+    assert updated_month.month + 1 == current_month.month
 
         # Check for the "Next" button after successfully navigating to the previous month
-        try:
-            next_button = WebDriverWait(browser, 15).until(
-                EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Next')]"))
-            )
-            # Click "Next" and check if the month changes back to October
-            next_button.click()
-            time.sleep(2)  # Wait for UI update
-            updated_month = month_dropdown.text
-            if updated_month == "October":
-                print("Next month navigation successful.")
-            else:
-                print("Next month navigation failed.")
-        except TimeoutException:
-            print("Next button not found.")
-    else:
-        print("Previous month navigation failed.")
+    try:
+        next_button = WebDriverWait(browser, 15).until(
+            EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Next')]"))
+        )
+        # Click "Next" and check if the month changes back to October
+        next_button.click()
+        time.sleep(2)  # Wait for UI update
+        updated_month = datetime.datetime.strptime(month_dropdown.text, "%B")
+        assert updated_month.month == current_month.month
+    except TimeoutException:
+        print("Next button not found.")
+
 
     # Close the browser after test
     browser.quit()

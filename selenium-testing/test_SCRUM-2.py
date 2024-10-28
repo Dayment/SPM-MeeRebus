@@ -98,23 +98,18 @@ def test_navigation():
         prev_button.click()
         time.sleep(2)
         updated_month = datetime.datetime.strptime(month_dropdown.text, "%B")
-        if updated_month.month == 9:
-            print("Previous month navigation successful.")
-            # Click "Next" to go back to October
-            try:
-                next_button = WebDriverWait(driver, 20).until(
-                    EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Next')]"))
-                )
-                next_button.click()
-                time.sleep(2)
-                updated_month = datetime.datetime.strptime(month_dropdown.text, "%B")
-                if updated_month.month == 10:
-                    print("Next month navigation successful.")
-                else:
-                    print("Next month navigation failed.")
-            except TimeoutException:
-                print("Next button not found.")
-        else:
-            print("Previous month navigation failed.")
+        assert updated_month.month + 1 == current_month.month
+
+        try:
+            next_button = WebDriverWait(driver, 20).until(
+                EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Next')]"))
+            )
+            next_button.click()
+            time.sleep(2)
+            updated_month = datetime.datetime.strptime(month_dropdown.text, "%B")
+            assert updated_month.month == current_month.month
+        except TimeoutException:
+            print("Next button not found.")
+
     finally:
         driver.quit()
