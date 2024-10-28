@@ -35,6 +35,7 @@
         required
       />
     </div>
+
     <!-- File Upload Section -->
     <div class="mb-3">
       <label for="file-upload" class="form-label"
@@ -95,31 +96,25 @@
     </div>
 
     <!-- Review Section -->
-    <div
-      class="review-section"
-      v-if="selectedDate && wfhtime && reason && requestType && !invalidMessage"
-    >
+    <div class="review-section" v-if="showReviewSection">
       <h3>Review Your Selection</h3>
       <p><strong>Selected WFH Date and Time:</strong> {{ selectedDate }}</p>
       <p><strong>Timeslot:</strong> {{ wfhtime }}</p>
       <p><strong>Reason:</strong> {{ reason }}</p>
       <p><strong>Request Type:</strong> {{ requestType }}</p>
-      <p><strong>Supporting documents:</strong> {{ uploadedFile.name }}</p>
-      <p><strong>Reccurence frequency:</strong> {{ recurrenceFrequency }}</p>
-      <p>
-        <strong>Reccuring arrangement will end on:</strong>
-        {{ recurrenceEndDate }}
-      </p>
+      <p><strong>Supporting documents:</strong> {{ uploadedFile?.name || 'None' }}</p>
+      <p><strong>Recurrence frequency:</strong> {{ recurrenceFrequency || 'N/A' }}</p>
+      <p><strong>Recurring arrangement will end on:</strong> {{ recurrenceEndDate || 'N/A' }}</p>
     </div>
 
     <button type="submit" class="btn btn-primary">Submit WFH Request</button>
-    
+
     <div class="mt-4">
       <h3>Dates That Are Blocked Off</h3>
       <table class="table table-bordered">
         <thead>
           <tr>
-            <th>Date</th> 
+            <th>Date</th>
             <th>Event Description</th>
             <th>Event ID</th>
           </tr>
@@ -127,9 +122,8 @@
         <tbody>
           <tr v-for="(description, date) in DateDict" :key="date">
             <td>{{ date }}</td>
-            <td>{{ description[0]}}</td>
-            <td>{{ description[1]}}</td>
-
+            <td>{{ description[0] }}</td>
+            <td>{{ description[1] }}</td>
           </tr>
         </tbody>
       </table>
@@ -138,25 +132,14 @@
 </template>
 
 <script>
-import { getAllDepartments, getAllDatesWithEvents, getExistingEvents } from '../api/api';
-import { convertFileToUrl } from '@/api/api';
-
+import { getAllDatesWithEvents, convertFileToUrl } from '@/api/api';
 
 export default {
   name: 'WFHForm',
   props: {
-    blockedDays: {
-      type: Array,
-      required: true,
-    },
-    minDate: {
-      type: String,
-      required: true,
-    },
-    maxDate: {
-      type: String,
-      required: true,
-    },
+    blockedDays: Array,
+    minDate: String,
+    maxDate: String,
   },
   data() {
     return {
@@ -169,31 +152,64 @@ export default {
       recurrenceEndDate: '',
       DateDict: {},
       uploadedFile: null,
-      uploadedFileUrl: '', //after converting to link from supabase storage
-
+      uploadedFileUrl: '',
     };
   },
   async mounted() {
-
-    const apiDateDict  = await getAllDatesWithEvents();
+    const apiDateDict = await getAllDatesWithEvents();
     this.DateDict = this.formatDatesToYYYYMMDD(apiDateDict);
-
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.forEach(tooltipTriggerEl => {
-    new bootstrap.Tooltip(tooltipTriggerEl);
-  });
-  
-    },  
+  },
 
   computed: {
-    invalidMessage() {
-      if (
-        !this.selectedDate ||
-        !this.wfhtime ||
-        !this.reason ||
-        !this.requestType
-      ) {
-        return 'Please complete all fields.';
+    showReviewSection() {
+      return (
+        this.selectedDate &&
+        this.wfhtime &&
+        this.reason &&
+        this.requestType 
+      );
+    },
+  },
+
+  watch: {
+    selectedDate() {
+      this.updateInvalidMessage();
+    },
+    wfhtime() {
+      this.updateInvalidMessage();
+    },
+    reason() {
+      this.updateInvalidMessage();
+    },
+    requestType() {
+      this.updateInvalidMessage();
+    },
+    recurrenceFrequency() {
+      this.updateInvalidMessage();
+    },
+    recurrenceEndDate() {
+      this.updateInvalidMessage();
+    },
+  },
+
+  methods: {
+    formatDatesToYYYYMMDD(dateDict) {
+      const formattedDict = {};
+      for (const [dateString, description] of Object.entries(dateDict)) {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+
+        formattedDict[`${year}-${month}-${day}`] = description;
+      }
+      return formattedDict;
+    },
+
+    updateInvalidMessage() {
+      if (!this.selectedDate || !this.wfhtime || !this.reason || !this.requestType) {
+        this.invalidMessage = 'Please complete all fields.';
+        return;
       }
 
       const date_obj = new Date(
@@ -204,41 +220,27 @@ export default {
       oneYearFromNow.setFullYear(today.getFullYear() + 1);
 
       if (date_obj < today || date_obj > oneYearFromNow) {
-        return 'Invalid WFH date. Please select a valid date.';
+        this.invalidMessage = 'Invalid WFH date. Please select a valid date.';
+        return;
       }
 
       if (this.blockedDays.includes(this.selectedDate)) {
-        return 'This day is blocked. Please select another date.';
+        this.invalidMessage = 'This day is blocked. Please select another date.';
+        return;
       }
-      if (this.requestType === 'recurring') {
+
+      if (this.requestType === 'Recurring') {
         if (!this.recurrenceFrequency || !this.recurrenceEndDate) {
-          return 'Please complete all recurring request fields.';
+          this.invalidMessage = 'Please complete all recurring request fields.';
+          return;
         }
         if (new Date(this.recurrenceEndDate) < date_obj) {
-          return 'Recurrence end date must be after the start date.';
+          this.invalidMessage = 'Recurrence end date must be after the start date.';
+          return;
         }
       }
 
-      return '';
-    },
-
-    isFormValid() {
-      return !this.invalidMessage;
-    },
-  },
-  methods: {
-
-    formatDatesToYYYYMMDD(dateDict) {
-      const formattedDict = {};
-      for (const [dateString, description] of Object.entries(dateDict)) {
-        const date = new Date(dateString); // Convert to Date object
-        const day = String(date.getDate()).padStart(2, '0'); // Get day with leading zero
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // Get month with leading zero
-        const year = date.getFullYear(); // Get the full year
-
-        formattedDict[`${year}-${month}-${day}`] = description; // Return formatted date as key
-      }
-      return formattedDict;
+      this.invalidMessage = '';
     },
 
     onFileChange(event) {
@@ -246,12 +248,11 @@ export default {
     },
 
     async handleSubmit() {
-
       const payload = {
         date: this.selectedDate,
-        time: this.wfhtime, // AM, PM or Full Day
+        time: this.wfhtime,
         reason: this.reason,
-        requestType: this.requestType, // ad-hoc or recurring
+        requestType: this.requestType,
       };
       if (this.uploadedFile) {
         try {
@@ -264,7 +265,7 @@ export default {
         }
       }
 
-      if (this.requestType == 'Recurring') {
+      if (this.requestType === 'Recurring') {
         payload.recurrenceFrequency = this.recurrenceFrequency;
         payload.recurrenceEndDate = this.recurrenceEndDate;
       }
