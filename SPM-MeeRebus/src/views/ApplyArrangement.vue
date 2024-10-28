@@ -62,12 +62,16 @@ export default {
         this.updatedEventList = Object.keys(this.updatedEventObj); // Extract all the keys (formatted dates)
 
         // Check if the selected date is already in the formatted event list
-        console.log(this.staff_id);
+
+        // staff_id enters as a string
+        // console.log(this.staff_id);
+        // console.log(typeof(this.staff_id));
         if (this.updatedEventList.includes(date)) {
           alert(
             'This date already exists in the events list. Please choose another date.',
           );
-        } else if(this.staff_id == 130002){
+        } else if(this.staff_id == "130002"){
+            await createWFHRequest(payload);
             alert('WFH request approved!');
         } else {
           await createWFHRequest(payload);

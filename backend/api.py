@@ -127,7 +127,7 @@ def create_app(test_config=None):
             response = supabase.table('events').select('event_id, date, description').execute()
 
             # Debugging: Print the response to verify what is being returned
-            print(response.data)
+            # print(response.data)
 
             if response.data:
                 # Create a dictionary with date as key and an array [description, event_id] as value
@@ -139,7 +139,7 @@ def create_app(test_config=None):
                 
                 # If the event_data_dict is populated, return it, otherwise return a "not found" message
                 if event_data_dict:
-                    print(jsonify(event_data_dict))
+                    # print(jsonify(event_data_dict))
                     return jsonify(event_data_dict), 200
             else:
                 return jsonify({"error": "No events found"}), 404
@@ -313,8 +313,8 @@ def create_app(test_config=None):
         # Get all arrangements for employees with the same position. This is team schedule
         arrangements_response = supabase.table('arrangement').select('*').in_('staff_id', staff_ids).execute()
         
-        print("-----------------------------------------------")
-        print(arrangements_response.data)
+        # print("-----------------------------------------------")
+        # print(arrangements_response.data)
 
         if arrangements_response.data:
             output = []
@@ -399,6 +399,9 @@ def create_app(test_config=None):
             reason = data.get('reason')
             requestType = data.get('requestType')
             url = data.get('fileUrl')
+
+            # print(staff_id)
+            # print(type(staff_id))
             
             if not staff_id or not wfh_date or not wfh_time:
                 return jsonify({"error": "Missing required fields: staff_id, date, or time."}), 400
@@ -428,7 +431,7 @@ def create_app(test_config=None):
             
             # Get employee's reporting manager
 
-            if (staff_id != 130002):
+            if (staff_id != "130002"):
                 employee_data_res = supabase.table('employee').select('reporting_manager', 'email', 'staff_fname', 'staff_lname').eq('staff_id', staff_id).single().execute()
                 if employee_data_res.data:
                     reporting_manager = employee_data_res.data['reporting_manager']
@@ -446,7 +449,9 @@ def create_app(test_config=None):
 
             status = 0
 
-            if (staff_id == 130002):
+            if (staff_id == "130002"):
+                print("---------------------------------------------------")
+                print("WORKING")
                 status = 1
                 reporting_manager = 130002
 
@@ -483,11 +488,11 @@ def create_app(test_config=None):
                 }).execute()
 
             # Send notification emails after successful submission
-            if (staff_id != 130002):
+            if (staff_id != "130002"):
                 if manager_email and employee_email:
                     send_wfh_notification(employee_email, manager_email, employee_name)
 
-                return jsonify({"message": "WFH request submitted successfully and is now pending approval."}), 201
+                    return jsonify({"message": "WFH request submitted successfully and is now pending approval."}), 201
             else:
                 return jsonify({"message": "WFH approved."}), 201
 
