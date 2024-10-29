@@ -110,15 +110,18 @@ export default {
   name: 'EventsForm',
   props: {},
   async mounted() {
-    const retrievedDepartment = await getAllDepartments(); // Call the API to fetch departments when the component is mounted
-    this.existingDepartment = retrievedDepartment.map(
-      (departmentName, index) => {
-        return {
-          id: index + 1, // Assign an ID based on the index
-          name: departmentName, // Use the name directly from the response
-        };
-      },
-    );
+    // const retrievedDepartment = await getAllDepartments(); // Call the API to fetch departments when the component is mounted
+    // print(retrievedDepartment,"retirevedDepartment");
+    
+
+    // this.existingDepartment = retrievedDepartment.map(
+    //   (departmentName, index) => {
+    //     return {
+    //       id: index + 1, // Assign an ID based on the index
+    //       name: departmentName, // Use the name directly from the response
+    //     };
+    //   },
+    // );
     const apiDateDict = await getAllDatesWithEvents();
 
     this.apiDateDict = this.formatDatesToYYYYMMDD(apiDateDict);
@@ -135,8 +138,15 @@ export default {
       eventName: '',
       selectedDepartment: '', // Variable for storing the selected departments
       existingDepartment: [
-        // Array of departments
-      ],
+      { id: 1, name: 'Consultancy' },
+      { id: 2, name: 'IT' },
+      { id: 3, name: 'Sales' },
+      { id: 4, name: 'Human Resources' },
+      { id: 5, name: 'Engineering' },
+      { id: 6, name: 'Finance' },
+      { id: 7, name: 'Solutioning' },
+      { id: 8, name: 'All Departments' },
+    ],
       selectedDate: '',
       description: '',
       successMessage: '', // Add successMessage to data,
@@ -161,15 +171,12 @@ export default {
         // Post request to create an event
         const empId = localStorage.getItem('employeeId');
         await axios
-          .post(
-            `${import.meta.env.VITE_BACKEND_URL}/create-event`,
-            {
-              date: this.selectedDate,
-              empId: empId,
-              creator: empId,
-              description: this.description,
-            },
-          )
+          .post(`${import.meta.env.VITE_BACKEND_URL}/create-event`, {
+            date: this.selectedDate,
+            empId: empId,
+            creator: empId,
+            description: this.description,
+          })
           .then((response) => {
             console.log(response.data); // Log the response to see what happens
             if (response.data.success) {
