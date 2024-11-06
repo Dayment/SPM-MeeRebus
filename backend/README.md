@@ -1,18 +1,8 @@
-# Frontend for WFH Management System
+# Backend for WFH Management System
 
 ## Recommended IDE Setup
 
 [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-* VITE v5.4.9 preferred
-
-This application can be run in both `development` and `production` modes.
-
-## Installation and Set-up
 
 ### Set-up project in files
 
@@ -27,30 +17,37 @@ We will use the environment variables to connect to our backend server to use it
 
 **Note: `.env` is automatically ignored by git`**
 
-## Project Setup
+### Install Dependencies
 
-```sh
-npm install
 ```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
-npm run build
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
 ## Development Mode
 
-Run the application in development mode
+Run app in development mode
 
 ```shell
-npm run dev
+python api.py
 ```
 
-Open [http://localhost:](http://localhost:3000/)5173 to view it in your browser.
+## Testing
+
+Navigate to root folder of `backend`
+
+```shell
+cd /path/to/SPM-MeeRebus/backend
+python run_all_tests.py
+```
+
+This command runs all of our unit, functional and integration tests.
+
+Navigate to root folder of selenium-tests
+
+```
+cd /path/to/SPM-MeeRebus/backend
+pytest test_SCRUM-x.py # replace x with the SCRUM number 
+```
+
+The tests scripts inside selenium-tests are E2E tests that simulate a real user flow.
