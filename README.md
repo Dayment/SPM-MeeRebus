@@ -28,7 +28,7 @@ Find the project live at:
 
 ### Dev Tools
 
-- [ESLint](https://eslint.org/) - Linting utility for TypeScript and TSX
+- [flake8](https://flake8.pycqa.org/en/latest/) - Linting utility for Python
 - [Prettier](https://prettier.io/) - Code formatter
 - [Selenium](https://www.selenium.dev/) – End-to-end testing framework for browser automation.
 - [Vercel](https://vercel.com/) – Deployment platform for modern frontend applications.
